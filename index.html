@@ -29,7 +29,7 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 .login-logo .school-badge svg{width:38px;height:38px;fill:white;}
 .login-logo h1{font-size:1.5rem;font-weight:700;color:var(--primary);}
 .login-logo p{font-size:.8rem;color:var(--muted);margin-top:.25rem;}
-.form-group{margin-bottom:1rem;}
+.form-group{margin-bottom:1rem;position:relative;}
 .form-group label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.05em;}
 .form-group input,.form-group select{width:100%;padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:10px;font-size:1rem;color:var(--text);background:var(--bg);transition:border-color .2s;-webkit-user-select:text;user-select:text;}
 .form-group input:focus,.form-group select:focus{border-color:var(--primary-light);outline:none;background:white;}
@@ -37,6 +37,13 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 .btn-primary:active{transform:scale(0.98);}
 .btn-primary:hover{background:var(--primary-light);}
 .error-msg{color:var(--danger);font-size:.85rem;margin-top:.5rem;display:none;}
+
+/* AUTOCOMPLETE */
+.autocomplete-list{position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--primary-light);border-radius:0 0 10px 10px;max-height:200px;overflow-y:auto;z-index:50;box-shadow:0 8px 20px rgba(0,0,0,.12);}
+.autocomplete-item{padding:.6rem 1rem;font-size:.95rem;cursor:pointer;color:var(--text);border-bottom:1px solid var(--border);}
+.autocomplete-item:last-child{border-bottom:none;}
+.autocomplete-item:hover,.autocomplete-item.active{background:#EBF5FB;color:var(--primary);}
+.autocomplete-item mark{background:none;color:var(--primary-light);font-weight:700;}
 
 /* HEADER */
 .exam-header{background:var(--primary);color:white;padding:.75rem 1rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
@@ -83,7 +90,7 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 .opt-text{font-size:.95rem;line-height:1.4;padding-top:4px;flex:1;}
 .opt-img{width:100%;max-width:220px;border-radius:6px;margin-top:.4rem;border:1px solid var(--border);}
 
-/* PGK CHECKBOX STYLE */
+/* PGK */
 .pgk-hint{font-size:.8rem;color:var(--pgk);background:#EAF4E7;border-radius:8px;padding:.5rem .75rem;margin-bottom:.75rem;}
 .pgk-item{display:flex;align-items:flex-start;gap:.75rem;padding:.75rem 1rem;border:2px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s;background:var(--bg);}
 .pgk-item:active{transform:scale(.98);}
@@ -91,25 +98,24 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 .pgk-checkbox{width:28px;height:28px;border-radius:6px;border:2px solid var(--border);background:white;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;font-size:1.1rem;}
 .pgk-item.checked .pgk-checkbox{background:var(--pgk);border-color:var(--pgk);color:white;}
 
-/* MENJODOHKAN */
+/* MENJODOHKAN - FIXED */
 .match-container{margin-top:1rem;}
-.match-instructions{font-size:.8rem;color:var(--jodoh);background:#FEF9E7;border-radius:8px;padding:.5rem .75rem;margin-bottom:.75rem;}
-.match-options-bank{display:flex;flex-wrap:wrap;gap:.5rem;padding:.75rem;background:var(--bg);border-radius:10px;margin-bottom:.75rem;min-height:52px;}
-.match-options-bank-label{font-size:.72rem;color:var(--muted);width:100%;margin-bottom:.25rem;font-weight:600;}
-.match-chip{padding:.45rem .85rem;background:white;border:2px solid var(--border);border-radius:20px;font-size:.82rem;cursor:grab;user-select:none;transition:all .15s;touch-action:none;display:inline-flex;align-items:center;gap:.4rem;}
-.match-chip:active{transform:scale(.95);}
-.match-chip.used{opacity:.3;pointer-events:none;}
-.match-chip.dragging{opacity:.5;}
-.match-chip.tap-selected{border-color:var(--accent);background:#FFF8E7;outline:2px solid var(--accent);}
+.match-instructions{font-size:.8rem;color:var(--jodoh);background:#FEF9E7;border-radius:8px;padding:.5rem .75rem;margin-bottom:.75rem;line-height:1.5;}
+.match-options-bank{display:flex;flex-wrap:wrap;gap:.5rem;padding:.75rem;background:var(--bg);border-radius:10px;margin-bottom:.75rem;min-height:52px;border:2px dashed var(--border);}
+.match-options-bank-label{font-size:.72rem;color:var(--muted);width:100%;margin-bottom:.25rem;font-weight:600;text-transform:uppercase;}
+.match-chip{padding:.45rem .85rem;background:white;border:2px solid var(--border);border-radius:20px;font-size:.82rem;cursor:pointer;user-select:none;transition:all .2s;touch-action:manipulation;display:inline-flex;align-items:center;gap:.4rem;-webkit-user-select:none;}
+.match-chip:active{transform:scale(.92);}
+.match-chip.used{opacity:.25;pointer-events:none;background:#f0f0f0;}
+.match-chip.tap-selected{border-color:var(--accent);background:#FFF3CD;outline:3px solid var(--accent);transform:scale(1.05);font-weight:700;}
 .match-pairs{display:flex;flex-direction:column;gap:.6rem;}
 .match-row{display:flex;align-items:stretch;gap:.5rem;}
 .match-left{flex:1;background:var(--bg);border:2px solid var(--border);border-radius:8px;padding:.6rem .75rem;font-size:.88rem;font-weight:500;display:flex;align-items:center;}
 .match-left-img{width:100%;max-width:120px;border-radius:4px;margin-top:.3rem;}
 .match-arrow{color:var(--border);font-size:.9rem;display:flex;align-items:center;flex-shrink:0;}
-.match-drop{flex:1;min-height:44px;border:2px dashed var(--border);border-radius:8px;padding:.5rem .75rem;font-size:.82rem;color:var(--muted);background:white;display:flex;align-items:center;transition:all .2s;cursor:pointer;position:relative;}
+.match-drop{flex:1;min-height:48px;border:2px dashed var(--border);border-radius:8px;padding:.5rem .75rem;font-size:.82rem;color:var(--muted);background:white;display:flex;align-items:center;transition:all .2s;cursor:pointer;position:relative;}
 .match-drop.filled{border-style:solid;border-color:var(--jodoh);background:#FEF9E7;color:var(--text);font-weight:500;}
-.match-drop.drag-over{border-color:var(--accent);background:#FFF8E7;}
-.match-drop .remove-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;background:var(--danger);color:white;font-size:.65rem;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.match-drop.tap-target{border-color:var(--primary-light);background:#EBF5FB;border-style:solid;}
+.match-drop .remove-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:var(--danger);color:white;font-size:.65rem;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
 
 /* BS */
 .bs-options{display:flex;gap:.75rem;margin-top:1rem;}
@@ -165,10 +171,25 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 .predikat.D{background:rgba(214,48,49,.4);color:white;}
 .saving-note{font-size:.78rem;color:var(--muted);text-align:center;padding:.25rem 1.25rem;}
 
-/* ADMIN */
+/* ADMIN LOGIN OVERLAY */
+.admin-login-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:none;align-items:center;justify-content:center;padding:1rem;}
+.admin-login-overlay.show{display:flex;}
+.admin-login-box{background:white;border-radius:16px;padding:1.75rem;width:100%;max-width:340px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.admin-login-box h3{font-size:1.1rem;font-weight:700;color:var(--primary);margin-bottom:.25rem;text-align:center;}
+.admin-login-box p{font-size:.8rem;color:var(--muted);text-align:center;margin-bottom:1.25rem;}
+.admin-login-box input{width:100%;padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:10px;font-size:1rem;margin-bottom:.75rem;-webkit-user-select:text;user-select:text;}
+.admin-login-box input:focus{border-color:var(--primary);outline:none;}
+.admin-login-btns{display:flex;gap:.5rem;}
+.btn-admin-login{flex:1;padding:.75rem;border-radius:10px;font-weight:700;font-size:.9rem;}
+.btn-admin-login.confirm{background:var(--primary);color:white;}
+.btn-admin-login.cancel{background:var(--bg);color:var(--text);border:1.5px solid var(--border);}
+.admin-login-error{color:var(--danger);font-size:.8rem;text-align:center;margin-bottom:.5rem;display:none;}
+
+/* ADMIN PANEL */
 #screen-admin{background:var(--bg);}
 .admin-header{background:var(--primary);color:white;padding:1rem;display:flex;align-items:center;gap:.75rem;}
-.admin-header h2{font-size:1rem;font-weight:700;}
+.admin-header h2{font-size:1rem;font-weight:700;flex:1;}
+.admin-badge{background:var(--accent);color:white;border-radius:6px;padding:.2rem .6rem;font-size:.7rem;font-weight:700;letter-spacing:.05em;}
 .admin-body{padding:1rem;display:flex;flex-direction:column;gap:1rem;overflow-y:auto;flex:1;}
 .admin-card{background:white;border-radius:12px;padding:1.25rem;box-shadow:0 2px 8px rgba(0,0,0,.06);}
 .admin-card h3{font-size:.9rem;font-weight:700;color:var(--primary);margin-bottom:1rem;}
@@ -192,7 +213,12 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 .btn-admin:active{transform:scale(.98);}
 .sheet-note{background:#EBF5FB;border-radius:8px;padding:.75rem;font-size:.78rem;color:var(--primary);margin-top:.5rem;line-height:1.5;}
 .toggle-admin{font-size:.75rem;text-align:center;padding:.5rem;color:var(--muted);margin-top:auto;}
-.toggle-admin a{color:var(--primary-light);}
+
+/* ADMIN BTN BOTTOM LOGIN */
+.admin-link-wrap{text-align:center;margin-top:.75rem;}
+.admin-link-btn{background:none;border:none;font-size:.78rem;color:var(--muted);cursor:pointer;padding:.3rem .6rem;border-radius:6px;display:inline-flex;align-items:center;gap:.3rem;transition:all .2s;}
+.admin-link-btn:hover{background:rgba(46,109,164,.1);color:var(--primary-light);}
+.admin-link-btn svg{width:14px;height:14px;fill:currentColor;}
 
 /* MODAL */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem;}
@@ -224,6 +250,9 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 .protect-overlay{position:fixed;inset:0;background:white;z-index:9999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:1rem;}
 .protect-overlay.show{display:flex;}
 .protect-overlay p{font-size:1.1rem;font-weight:700;color:var(--primary);}
+
+/* SHEETS INFO */
+.sheets-info{background:#E8F8F5;border-radius:8px;padding:.75rem;font-size:.78rem;color:#16A085;margin-top:.5rem;line-height:1.6;}
 </style>
 </head>
 <body>
@@ -236,11 +265,24 @@ input,textarea{-webkit-user-select:text;user-select:text;}
   </div>
 </div>
 
-<!-- Screenshot protection overlay -->
 <div class="protect-overlay" id="protect-overlay">
   <svg width="60" height="60" viewBox="0 0 24 24" fill="#D63031"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 4l6 2.67V11c0 3.88-2.71 7.51-6 8.93C8.71 18.51 6 14.88 6 11V7.67L12 5z"/></svg>
   <p>🚫 Screenshot Dinonaktifkan</p>
   <p style="font-size:.85rem;color:var(--muted)">Kembali ke ujian untuk melanjutkan</p>
+</div>
+
+<!-- ADMIN LOGIN OVERLAY -->
+<div class="admin-login-overlay" id="admin-login-overlay">
+  <div class="admin-login-box">
+    <h3>🔐 Admin Panel</h3>
+    <p>Masukkan password untuk masuk</p>
+    <p class="admin-login-error" id="admin-login-error">⚠️ Password salah!</p>
+    <input type="password" id="admin-pwd-input" placeholder="Password Admin" onkeydown="if(event.key==='Enter')checkAdminLogin()">
+    <div class="admin-login-btns">
+      <button class="btn-admin-login cancel" onclick="closeAdminLogin()">Batal</button>
+      <button class="btn-admin-login confirm" onclick="checkAdminLogin()">Masuk →</button>
+    </div>
+  </div>
 </div>
 
 <!-- SCREEN LOGIN -->
@@ -253,15 +295,19 @@ input,textarea{-webkit-user-select:text;user-select:text;}
       <h1>SIUJIAN</h1>
       <p>SDN Petukangan Utara 01 · Jakarta Selatan</p>
     </div>
-    <div class="form-group">
+    <div class="form-group" id="name-group">
       <label>Nama Lengkap</label>
-      <input type="text" id="input-name" placeholder="Contoh: Ahmad Fauzi" autocomplete="off">
+      <input type="text" id="input-name" placeholder="Ketik nama untuk mencari..." autocomplete="off"
+        oninput="onNameInput(this.value)" onkeydown="onNameKeydown(event)" onfocus="onNameInput(this.value)">
+      <div class="autocomplete-list" id="autocomplete-list" style="display:none"></div>
     </div>
     <div class="form-group">
       <label>Kelas</label>
       <select id="input-kelas">
         <option value="">-- Pilih Kelas --</option>
-        <option>4A</option><option>4B</option><option>5A</option><option>5B</option><option>6A</option><option>6B</option>
+        <option value="5">5</option>
+        <option value="5-A">5-A</option>
+        <option value="5-B">5-B</option>
       </select>
     </div>
     <div class="form-group" id="pwd-group" style="display:none">
@@ -271,7 +317,12 @@ input,textarea{-webkit-user-select:text;user-select:text;}
     <p class="error-msg" id="login-error"></p>
     <div id="no-exam-note" class="no-exam-note" style="display:none">⚠️ Soal belum dimuat. Hubungi guru!</div>
     <button class="btn-primary" onclick="doLogin()">Mulai Ujian →</button>
-    <div class="toggle-admin"><a href="#" onclick="showAdmin(event)">⚙️ Panel Guru</a></div>
+    <div class="admin-link-wrap">
+      <button class="admin-link-btn" onclick="openAdminLogin()">
+        <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+        Admin
+      </button>
+    </div>
   </div>
 </div>
 
@@ -279,7 +330,8 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 <div class="screen" id="screen-admin">
   <div class="admin-header">
     <button onclick="backToLogin()" style="background:rgba(255,255,255,.2);border-radius:8px;padding:.4rem .6rem;color:white;font-size:.85rem;">← Kembali</button>
-    <h2>⚙️ Panel Guru</h2>
+    <h2>⚙️ Panel Admin</h2>
+    <span class="admin-badge">ADMIN</span>
   </div>
   <div class="admin-body">
     <div class="admin-card">
@@ -324,11 +376,14 @@ input,textarea{-webkit-user-select:text;user-select:text;}
       </div>
     </div>
     <div class="admin-card">
-      <h3>📊 Google Sheets</h3>
+      <h3>📊 Google Sheets (Rekap Nilai Online)</h3>
       <input id="cfg-sheets-url" placeholder="https://script.google.com/macros/s/..." style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:.6rem .75rem;font-size:.8rem;-webkit-user-select:text;user-select:text;">
-      <div class="sheet-note">Lihat file <strong>google-apps-script.js</strong> → deploy di script.google.com → paste URL-nya di sini.</div>
+      <div class="sheets-info">
+        ✅ Nilai siswa otomatis terkirim ke Google Sheets setelah ujian selesai.<br>
+        📌 Cara: Buka <strong>script.google.com</strong> → buat Apps Script baru → paste kode → deploy → copy URL-nya ke sini.
+      </div>
     </div>
-    <button class="btn-admin success" onclick="saveAdminConfig()">✅ Simpan & Generate Link Ujian</button>
+    <button class="btn-admin success" onclick="saveAdminConfig()">✅ Simpan & Generate File Ujian</button>
     <button class="btn-admin info" onclick="exportResults()">📥 Export Hasil ke CSV</button>
     <button class="btn-admin danger" onclick="clearResults()">🗑️ Reset Hasil Ujian</button>
   </div>
@@ -412,11 +467,34 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 // ===== EMBEDDED CONFIG =====
-// Saat guru klik "Simpan & Generate", data soal + config di-embed ke sini
-// sehingga semua perangkat (HP/laptop) bisa langsung buka tanpa setup
+var EMBEDDED_CONFIG = null;
+var EMBEDDED_SOAL = null;
 
-var EMBEDDED_CONFIG = null; // Will be replaced by generator
-var EMBEDDED_SOAL = null;   // Will be replaced by generator
+// ===== ADMIN PASSWORD =====
+const ADMIN_PASSWORD = 'admin@123';
+
+// ===== SISWA DATA =====
+const SISWA_5A = [
+  "AL DHIRGAM NAINI AKBAR","ALFIAN SAPUTRA","ALIKA PUTRI BILQIS","ALMIA RAIDA FAKHIRA",
+  "ANINDITA KHAIRINISWA","AYRA ROKIAH HASANAH","AZKA ARRAFIF RAMADAN","AZZAHRA DESTIANA PUTRI",
+  "BALQIS AZZURA","BILQIS SYUJA WIBOWO","FAIZ ALKAMIL SYARIFUDIN","FAJAR DENIEL RAMADHAN",
+  "GHAISAN ALI RABBANI IBRAHIM","JIHAN ALMIRA SALSABILA","JUNIO ANWAR ALKHALIFI","KAMILAH JAMALUDIN",
+  "LUISA JASMINE ASMIRANDA","MUHAMMAD ABDUL HABIB","MUHAMMAD LIONEL BENJAMIN","NADINE PERMATA PUTRI",
+  "NAYAKA AMORA CHARDIN","QIYANA PRIMA PUTRI","RAJAB MAULANA","REXA BRIGHITA ORIANA",
+  "REYHAN ANDRA PRADITO","RIO DIRGANTARA RAHARGIYANTO","TRISTAN AGASTYA","VALENCIA AUNI BATRISYIA",
+  "VANESSA AUNI BATRISYIA"
+];
+const SISWA_5B = [
+  "AL DHIRGAM NAINI AKBAR","ALFIAN SAPUTRA","ALIKA PUTRI BILQIS","ALMIA RAIDA FAKHIRA",
+  "ANINDITA KHAIRINISWA","AYRA ROKIAH HASANAH","AZKA ARRAFIF RAMADAN","AZZAHRA DESTIANA PUTRI",
+  "BALQIS AZZURA","BILQIS SYUJA WIBOWO","FAIZ ALKAMIL SYARIFUDIN","FAJAR DENIEL RAMADHAN",
+  "GHAISAN ALI RABBANI IBRAHIM","JIHAN ALMIRA SALSABILA","JUNIO ANWAR ALKHALIFI","KAMILAH JAMALUDIN",
+  "LUISA JASMINE ASMIRANDA","MUHAMMAD ABDUL HABIB","MUHAMMAD LIONEL BENJAMIN","NADINE PERMATA PUTRI",
+  "NAYAKA AMORA CHARDIN","QIYANA PRIMA PUTRI","RAJAB MAULANA","REXA BRIGHITA ORIANA",
+  "REYHAN ANDRA PRADITO","RIO DIRGANTARA RAHARGIYANTO","TRISTAN AGASTYA","VALENCIA AUNI BATRISYIA",
+  "VANESSA AUNI BATRISYIA","ZAHDAN DIRGA ALFARIZI"
+];
+const SISWA_ALL = [...new Set([...SISWA_5A, ...SISWA_5B])].sort();
 
 // ===== RUNTIME STATE =====
 let CFG = { namaUjian:'Ujian PAI', waktuMenit:60, acakSoal:true, password:'', sheetsUrl:'', protect:true };
@@ -429,12 +507,10 @@ let timeLeft = 0;
 let startTime = null;
 let studentData = {};
 let tapSelected = null;
-let touchData = {};
-let touchDragEl = null;
+let acActiveIdx = -1;
 
 // ===== INIT =====
 window.onload = () => {
-  // Load embedded data (from generated file) or localStorage (admin session)
   if (EMBEDDED_CONFIG) {
     CFG = EMBEDDED_CONFIG;
     SOAL = EMBEDDED_SOAL || [];
@@ -449,68 +525,134 @@ window.onload = () => {
   syncAdminForm();
   updateLoginUI();
   setupProtection();
+  // Auto-set kelas when name is selected
+  document.getElementById('input-kelas').addEventListener('change', () => {
+    const kelas = document.getElementById('input-kelas').value;
+    // filter autocomplete by kelas
+    const name = document.getElementById('input-name').value;
+    if(name) onNameInput(name);
+  });
   setTimeout(() => {
     document.getElementById('loading').classList.add('hidden');
     showScreen('screen-login');
   }, 1400);
 };
 
-function syncAdminForm() {
-  document.getElementById('cfg-nama').value = CFG.namaUjian;
-  document.getElementById('cfg-waktu').value = CFG.waktuMenit;
-  document.getElementById('cfg-acak').value = CFG.acakSoal ? '1' : '0';
-  document.getElementById('cfg-password').value = CFG.password || '';
-  document.getElementById('cfg-sheets-url').value = CFG.sheetsUrl || '';
-  document.getElementById('cfg-protect').value = CFG.protect ? '1' : '0';
+// ===== AUTOCOMPLETE =====
+function getSiswaByKelas(kelas) {
+  if(kelas === '5-A') return SISWA_5A;
+  if(kelas === '5-B') return SISWA_5B;
+  return SISWA_ALL;
 }
 
-function updateLoginUI() {
-  document.getElementById('no-exam-note').style.display = SOAL.length ? 'none' : 'block';
-  document.getElementById('pwd-group').style.display = CFG.password ? '' : 'none';
+function onNameInput(val) {
+  const list = document.getElementById('autocomplete-list');
+  const kelas = document.getElementById('input-kelas').value;
+  if(!val || val.length < 2) { list.style.display='none'; acActiveIdx=-1; return; }
+  const pool = getSiswaByKelas(kelas);
+  const q = val.toUpperCase();
+  const matches = pool.filter(n => n.includes(q)).slice(0, 8);
+  if(!matches.length) { list.style.display='none'; return; }
+  list.innerHTML = matches.map((n,i) => {
+    const hi = n.replace(q, `<mark>${q}</mark>`);
+    return `<div class="autocomplete-item" data-name="${n}" data-idx="${i}" onmousedown="selectName('${n.replace(/'/g,"\\'")}',event)">${hi}</div>`;
+  }).join('');
+  list.style.display = 'block';
+  acActiveIdx = -1;
+}
+
+function onNameKeydown(e) {
+  const list = document.getElementById('autocomplete-list');
+  const items = list.querySelectorAll('.autocomplete-item');
+  if(!items.length) return;
+  if(e.key === 'ArrowDown') {
+    e.preventDefault();
+    acActiveIdx = Math.min(acActiveIdx+1, items.length-1);
+    items.forEach((el,i) => el.classList.toggle('active', i===acActiveIdx));
+  } else if(e.key === 'ArrowUp') {
+    e.preventDefault();
+    acActiveIdx = Math.max(acActiveIdx-1, 0);
+    items.forEach((el,i) => el.classList.toggle('active', i===acActiveIdx));
+  } else if(e.key === 'Enter') {
+    e.preventDefault();
+    if(acActiveIdx >= 0) {
+      const name = items[acActiveIdx].dataset.name;
+      selectName(name, null);
+    }
+  } else if(e.key === 'Escape') {
+    list.style.display='none';
+  }
+}
+
+function selectName(name, e) {
+  if(e) e.preventDefault();
+  document.getElementById('input-name').value = name;
+  document.getElementById('autocomplete-list').style.display = 'none';
+  // Auto-set kelas based on which list the student is in
+  const kelas = document.getElementById('input-kelas').value;
+  if(!kelas) {
+    if(SISWA_5A.includes(name) && !SISWA_5B.includes(name)) {
+      document.getElementById('input-kelas').value = '5-A';
+    } else if(SISWA_5B.includes(name) && !SISWA_5A.includes(name)) {
+      document.getElementById('input-kelas').value = '5-B';
+    }
+  }
+}
+
+// Hide autocomplete on click outside
+document.addEventListener('click', e => {
+  if(!e.target.closest('#name-group')) {
+    document.getElementById('autocomplete-list').style.display='none';
+  }
+});
+
+// ===== ADMIN LOGIN =====
+function openAdminLogin() {
+  document.getElementById('admin-pwd-input').value = '';
+  document.getElementById('admin-login-error').style.display = 'none';
+  document.getElementById('admin-login-overlay').classList.add('show');
+  setTimeout(() => document.getElementById('admin-pwd-input').focus(), 100);
+}
+function closeAdminLogin() {
+  document.getElementById('admin-login-overlay').classList.remove('show');
+}
+function checkAdminLogin() {
+  const pwd = document.getElementById('admin-pwd-input').value;
+  if(pwd === ADMIN_PASSWORD) {
+    closeAdminLogin();
+    syncAdminForm();
+    if(SOAL.length) renderSoalPreview();
+    showScreen('screen-admin');
+  } else {
+    document.getElementById('admin-login-error').style.display = 'block';
+    document.getElementById('admin-pwd-input').value = '';
+    document.getElementById('admin-pwd-input').focus();
+  }
 }
 
 // ===== SCREENSHOT PROTECTION =====
 function setupProtection() {
   if (!CFG.protect) return;
-  // Block PrintScreen / key combos
   document.addEventListener('keydown', e => {
-    if (
-      e.key === 'PrintScreen' ||
-      (e.ctrlKey && ['p','s','a','c','u'].includes(e.key.toLowerCase())) ||
-      (e.metaKey && ['p','s','a','c','u'].includes(e.key.toLowerCase()))
-    ) {
+    if (e.key==='PrintScreen'||(e.ctrlKey&&['p','s','a','c','u'].includes(e.key.toLowerCase()))||(e.metaKey&&['p','s','a','c','u'].includes(e.key.toLowerCase()))) {
       e.preventDefault();
-      if (document.getElementById('screen-exam').classList.contains('active')) {
-        showProtectOverlay();
-      }
+      if(document.getElementById('screen-exam').classList.contains('active')) showProtectOverlay();
     }
   });
-  // On visibility change (alt+tab, etc.)
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden && document.getElementById('screen-exam').classList.contains('active')) {
-      showProtectOverlay();
-    } else {
-      hideProtectOverlay();
-    }
+    if(document.hidden&&document.getElementById('screen-exam').classList.contains('active')) showProtectOverlay();
+    else hideProtectOverlay();
   });
-  // Disable right click during exam
   document.addEventListener('contextmenu', e => {
-    if (document.getElementById('screen-exam').classList.contains('active')) {
-      e.preventDefault();
-    }
+    if(document.getElementById('screen-exam').classList.contains('active')) e.preventDefault();
   });
 }
-function showProtectOverlay() {
-  document.getElementById('protect-overlay').classList.add('show');
-  setTimeout(hideProtectOverlay, 2000);
-}
-function hideProtectOverlay() {
-  document.getElementById('protect-overlay').classList.remove('show');
-}
+function showProtectOverlay() { document.getElementById('protect-overlay').classList.add('show'); setTimeout(hideProtectOverlay,2000); }
+function hideProtectOverlay() { document.getElementById('protect-overlay').classList.remove('show'); }
 
 // ===== SCREENS =====
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
@@ -521,165 +663,136 @@ function doLogin() {
   const pwd = document.getElementById('input-password').value;
   const err = document.getElementById('login-error');
   err.style.display = 'none';
-  if (!name || !kelas) { err.style.display='block'; err.textContent='⚠️ Nama dan kelas wajib diisi!'; return; }
-  if (CFG.password && pwd !== CFG.password) { err.style.display='block'; err.textContent='⚠️ Password salah!'; return; }
-  if (!SOAL.length) { err.style.display='block'; err.textContent='⚠️ Soal belum tersedia!'; return; }
-  studentData = { name, kelas };
+  if(!name||!kelas){err.style.display='block';err.textContent='⚠️ Nama dan kelas wajib diisi!';return;}
+  if(CFG.password&&pwd!==CFG.password){err.style.display='block';err.textContent='⚠️ Password salah!';return;}
+  if(!SOAL.length){err.style.display='block';err.textContent='⚠️ Soal belum tersedia!';return;}
+  studentData={name,kelas};
   startExam();
 }
-function showAdmin(e) { e.preventDefault(); syncAdminForm(); if(SOAL.length) renderSoalPreview(); showScreen('screen-admin'); }
-function backToLogin() { showScreen('screen-login'); }
+function backToLogin(){showScreen('screen-login');}
+
+function syncAdminForm() {
+  document.getElementById('cfg-nama').value=CFG.namaUjian;
+  document.getElementById('cfg-waktu').value=CFG.waktuMenit;
+  document.getElementById('cfg-acak').value=CFG.acakSoal?'1':'0';
+  document.getElementById('cfg-password').value=CFG.password||'';
+  document.getElementById('cfg-sheets-url').value=CFG.sheetsUrl||'';
+  document.getElementById('cfg-protect').value=CFG.protect?'1':'0';
+}
+function updateLoginUI() {
+  document.getElementById('no-exam-note').style.display=SOAL.length?'none':'block';
+  document.getElementById('pwd-group').style.display=CFG.password?'':'none';
+}
 
 // ===== ADMIN =====
-function handleDrop(e) {
-  e.preventDefault();
-  document.getElementById('upload-area').classList.remove('dragover');
-  if (e.dataTransfer.files[0]) processExcelFile(e.dataTransfer.files[0]);
-}
-function handleFileUpload(inp) { if (inp.files[0]) processExcelFile(inp.files[0]); }
+function handleDrop(e) { e.preventDefault(); document.getElementById('upload-area').classList.remove('dragover'); if(e.dataTransfer.files[0]) processExcelFile(e.dataTransfer.files[0]); }
+function handleFileUpload(inp) { if(inp.files[0]) processExcelFile(inp.files[0]); }
 
 function processExcelFile(file) {
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const wb = XLSX.read(e.target.result, { type: 'array' });
-      // Read INFO_UJIAN
-      const iws = wb.Sheets['INFO_UJIAN'];
-      if (iws) {
-        XLSX.utils.sheet_to_json(iws, { header:1, defval:'' }).forEach(r => {
-          if (r[0]==='Nama Ujian' && r[1]) document.getElementById('cfg-nama').value = r[1];
-          if (r[0]==='Waktu Pengerjaan (menit)' && r[1]) document.getElementById('cfg-waktu').value = r[1];
-          if (r[0]==='Password Ujian (opsional)' && r[1]) document.getElementById('cfg-password').value = r[1];
-          if (r[0]==='Acak Soal') document.getElementById('cfg-acak').value = r[1]==='YA'?'1':'0';
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const iws=wb.Sheets['INFO_UJIAN'];
+      if(iws){
+        XLSX.utils.sheet_to_json(iws,{header:1,defval:''}).forEach(r=>{
+          if(r[0]==='Nama Ujian'&&r[1]) document.getElementById('cfg-nama').value=r[1];
+          if(r[0]==='Waktu Pengerjaan (menit)'&&r[1]) document.getElementById('cfg-waktu').value=r[1];
+          if(r[0]==='Password Ujian (opsional)'&&r[1]) document.getElementById('cfg-password').value=r[1];
+          if(r[0]==='Acak Soal') document.getElementById('cfg-acak').value=r[1]==='YA'?'1':'0';
         });
       }
-      // Read SOAL
-      const ws = wb.Sheets['SOAL'];
-      if (!ws) { alert('Sheet "SOAL" tidak ditemukan!'); return; }
-      const rows = XLSX.utils.sheet_to_json(ws, { defval:'' });
-      SOAL = rows.filter(r => r['TIPE'] && r['SOAL']).map((r, i) => {
-        const soal = {
-          id: i,
-          tipe: String(r['TIPE']).trim().toUpperCase(),
-          soal: String(r['SOAL']).trim(),
-          opsiA: String(r['OPSI_A']||'').trim(),
-          opsiB: String(r['OPSI_B']||'').trim(),
-          opsiC: String(r['OPSI_C']||'').trim(),
-          opsiD: String(r['OPSI_D']||'').trim(),
-          jawaban: String(r['JAWABAN']||'').trim(),
-          poin: parseFloat(r['POIN'])||1,
-          gambarSoal: String(r['GAMBAR_SOAL']||'').trim(),
-          gambarOpsiA: String(r['GAMBAR_OPSI_A']||'').trim(),
-          gambarOpsiB: String(r['GAMBAR_OPSI_B']||'').trim(),
-          gambarOpsiC: String(r['GAMBAR_OPSI_C']||'').trim(),
-          gambarOpsiD: String(r['GAMBAR_OPSI_D']||'').trim(),
-        };
-        return soal;
-      });
+      const ws=wb.Sheets['SOAL'];
+      if(!ws){alert('Sheet "SOAL" tidak ditemukan!');return;}
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      SOAL=rows.filter(r=>r['TIPE']&&r['SOAL']).map((r,i)=>({
+        id:i, tipe:String(r['TIPE']).trim().toUpperCase(), soal:String(r['SOAL']).trim(),
+        opsiA:String(r['OPSI_A']||'').trim(), opsiB:String(r['OPSI_B']||'').trim(),
+        opsiC:String(r['OPSI_C']||'').trim(), opsiD:String(r['OPSI_D']||'').trim(),
+        jawaban:String(r['JAWABAN']||'').trim(), poin:parseFloat(r['POIN'])||1,
+        gambarSoal:String(r['GAMBAR_SOAL']||'').trim(),
+        gambarOpsiA:String(r['GAMBAR_OPSI_A']||'').trim(),
+        gambarOpsiB:String(r['GAMBAR_OPSI_B']||'').trim(),
+        gambarOpsiC:String(r['GAMBAR_OPSI_C']||'').trim(),
+        gambarOpsiD:String(r['GAMBAR_OPSI_D']||'').trim(),
+      }));
       document.getElementById('file-info').classList.add('show');
-      document.getElementById('file-name').textContent = '📄 ' + file.name;
-      document.getElementById('file-soal-count').textContent = `✅ ${SOAL.length} soal berhasil dibaca`;
+      document.getElementById('file-name').textContent='📄 '+file.name;
+      document.getElementById('file-soal-count').textContent=`✅ ${SOAL.length} soal berhasil dibaca`;
       renderSoalPreview();
-    } catch(err) { alert('Error: ' + err.message); }
+    }catch(err){alert('Error: '+err.message);}
   };
   reader.readAsArrayBuffer(file);
 }
 
 function renderSoalPreview() {
-  const colors = {PG:'#EBF5FB',PGK:'#EAF4E7',JODOH:'#FEF9E7',BS:'#F5EEF8',ISIAN:'#E8F8F5'};
-  document.getElementById('soal-preview').innerHTML =
-    SOAL.slice(0,8).map((s,i) =>
-      `<div class="soal-preview-item">
-        <span class="badge" style="background:${colors[s.tipe]||'#eee'}">${s.tipe}</span>
-        ${s.gambarSoal ? '🖼️ ' : ''}${i+1}. ${s.soal.substring(0,55)}${s.soal.length>55?'...':''}
-      </div>`
-    ).join('') + (SOAL.length>8 ? `<div style="font-size:.75rem;padding:.4rem .5rem;color:var(--muted)">...+${SOAL.length-8} soal lagi</div>` : '');
+  const colors={PG:'#EBF5FB',PGK:'#EAF4E7',JODOH:'#FEF9E7',BS:'#F5EEF8',ISIAN:'#E8F8F5'};
+  document.getElementById('soal-preview').innerHTML=
+    SOAL.slice(0,8).map((s,i)=>`<div class="soal-preview-item"><span class="badge" style="background:${colors[s.tipe]||'#eee'}">${s.tipe}</span>${s.gambarSoal?'🖼️ ':''}${i+1}. ${s.soal.substring(0,55)}${s.soal.length>55?'...':''}</div>`).join('')+
+    (SOAL.length>8?`<div style="font-size:.75rem;padding:.4rem .5rem;color:var(--muted)">...+${SOAL.length-8} soal lagi</div>`:'');
 }
 
 function saveAdminConfig() {
-  if (!SOAL.length) { alert('⚠️ Upload soal dulu!'); return; }
-  CFG.namaUjian = document.getElementById('cfg-nama').value || 'Ujian PAI';
-  CFG.waktuMenit = parseInt(document.getElementById('cfg-waktu').value)||60;
-  CFG.acakSoal = document.getElementById('cfg-acak').value==='1';
-  CFG.password = document.getElementById('cfg-password').value;
-  CFG.sheetsUrl = document.getElementById('cfg-sheets-url').value;
-  CFG.protect = document.getElementById('cfg-protect').value==='1';
-
-  // Save to localStorage for current browser
-  localStorage.setItem('siujian_config', JSON.stringify(CFG));
-  localStorage.setItem('siujian_soal', JSON.stringify(SOAL));
-
-  // Generate self-contained HTML with embedded data
+  if(!SOAL.length){alert('⚠️ Upload soal dulu!');return;}
+  CFG.namaUjian=document.getElementById('cfg-nama').value||'Ujian PAI';
+  CFG.waktuMenit=parseInt(document.getElementById('cfg-waktu').value)||60;
+  CFG.acakSoal=document.getElementById('cfg-acak').value==='1';
+  CFG.password=document.getElementById('cfg-password').value;
+  CFG.sheetsUrl=document.getElementById('cfg-sheets-url').value;
+  CFG.protect=document.getElementById('cfg-protect').value==='1';
+  localStorage.setItem('siujian_config',JSON.stringify(CFG));
+  localStorage.setItem('siujian_soal',JSON.stringify(SOAL));
   generateStandaloneHTML();
   updateLoginUI();
   setupProtection();
-  alert(`✅ Tersimpan!\n📝 ${SOAL.length} soal · ⏱ ${CFG.waktuMenit} menit\n\nFile "ujian-aktif.html" sudah terunduh.\nUpload ke Netlify/hosting untuk dibuka semua HP.`);
+  alert(`✅ Tersimpan!\n📝 ${SOAL.length} soal · ⏱ ${CFG.waktuMenit} menit\n\nFile "ujian-aktif.html" sudah terunduh.\nUpload ke GitHub → replace index.html → semua HP bisa langsung buka!`);
   backToLogin();
 }
 
 function generateStandaloneHTML() {
-  // Read current HTML and inject embedded data
-  const currentHtml = document.documentElement.outerHTML;
-  const cfgJson = JSON.stringify(CFG);
-  const soalJson = JSON.stringify(SOAL);
-  const injected = currentHtml
-    .replace('var EMBEDDED_CONFIG = null;', `var EMBEDDED_CONFIG = ${cfgJson};`)
-    .replace('var EMBEDDED_SOAL = null;', `var EMBEDDED_SOAL = ${soalJson};`);
-  const blob = new Blob([injected], { type: 'text/html;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'ujian-aktif.html';
-  a.click();
+  const currentHtml=document.documentElement.outerHTML;
+  const cfgJson=JSON.stringify(CFG);
+  const soalJson=JSON.stringify(SOAL);
+  const injected=currentHtml
+    .replace('var EMBEDDED_CONFIG = null;',`var EMBEDDED_CONFIG = ${cfgJson};`)
+    .replace('var EMBEDDED_SOAL = null;',`var EMBEDDED_SOAL = ${soalJson};`);
+  const blob=new Blob([injected],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='ujian-aktif.html'; a.click();
   URL.revokeObjectURL(url);
 }
 
 function exportResults() {
-  const results = JSON.parse(localStorage.getItem('siujian_results')||'[]');
-  if (!results.length) { alert('Belum ada data hasil.'); return; }
-  const rows = [['Nama','Kelas','Nilai','Benar','Salah','Total','Durasi','Waktu']];
-  results.forEach(r => rows.push([r.name,r.kelas,r.score,r.benar,r.salah,r.totalQ,r.durasi,r.submitTime]));
-  const csv = rows.map(r => r.map(v=>`"${v}"`).join(',')).join('\n');
-  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
-  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='hasil_ujian.csv'; a.click();
+  const results=JSON.parse(localStorage.getItem('siujian_results')||'[]');
+  if(!results.length){alert('Belum ada data hasil.');return;}
+  const rows=[['Nama','Kelas','Nilai','Benar','Salah','Total','Durasi','Waktu']];
+  results.forEach(r=>rows.push([r.name,r.kelas,r.score,r.benar,r.salah,r.totalQ,r.durasi,r.submitTime]));
+  const csv=rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='hasil_ujian.csv'; a.click();
 }
-function clearResults() { if(confirm('Hapus semua hasil ujian?')){localStorage.removeItem('siujian_results');alert('Terhapus.');} }
+function clearResults(){if(confirm('Hapus semua hasil ujian?')){localStorage.removeItem('siujian_results');alert('Terhapus.');}}
 
 // ===== EXAM START =====
 function startExam() {
-  SOAL_ACTIVE = [...SOAL];
-  if (CFG.acakSoal) SOAL_ACTIVE = shuffle(SOAL_ACTIVE);
-  JAWABAN = {};
-  currentIdx = 0;
-  timeLeft = CFG.waktuMenit * 60;
-  startTime = Date.now();
-  tapSelected = null;
-  document.getElementById('hd-exam-name').textContent = CFG.namaUjian;
-  document.getElementById('hd-student-name').textContent = studentData.name + ' · ' + studentData.kelas;
-  buildNavDots();
-  renderQuestion(0);
-  startTimer();
-  showScreen('screen-exam');
+  SOAL_ACTIVE=[...SOAL];
+  if(CFG.acakSoal) SOAL_ACTIVE=shuffle(SOAL_ACTIVE);
+  JAWABAN={};currentIdx=0;
+  timeLeft=CFG.waktuMenit*60;startTime=Date.now();tapSelected=null;
+  document.getElementById('hd-exam-name').textContent=CFG.namaUjian;
+  document.getElementById('hd-student-name').textContent=studentData.name+' · '+studentData.kelas;
+  buildNavDots();renderQuestion(0);startTimer();showScreen('screen-exam');
 }
-
-function shuffle(arr) {
-  const a=[...arr];
-  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
-  return a;
-}
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
 // ===== TIMER =====
-function startTimer() {
+function startTimer(){
   if(timerInterval) clearInterval(timerInterval);
   updateTimerDisplay();
-  timerInterval = setInterval(()=>{
-    timeLeft--;
-    updateTimerDisplay();
-    if(timeLeft<=0){clearInterval(timerInterval);submitExam();}
-  },1000);
+  timerInterval=setInterval(()=>{timeLeft--;updateTimerDisplay();if(timeLeft<=0){clearInterval(timerInterval);submitExam();}},1000);
 }
-function updateTimerDisplay() {
-  const m=Math.floor(timeLeft/60), s=timeLeft%60;
+function updateTimerDisplay(){
+  const m=Math.floor(timeLeft/60),s=timeLeft%60;
   document.getElementById('timer-display').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   const box=document.getElementById('timer-box');
   box.classList.remove('warning','danger');
@@ -688,13 +801,10 @@ function updateTimerDisplay() {
 }
 
 // ===== NAV DOTS =====
-function buildNavDots() {
-  document.getElementById('q-nav-scroll').innerHTML =
-    SOAL_ACTIVE.map((_,i)=>`<div class="q-dot" id="dot-${i}" onclick="goToQ(${i})">${i+1}</div>`).join('');
-}
-function updateAllDots() {
+function buildNavDots(){document.getElementById('q-nav-scroll').innerHTML=SOAL_ACTIVE.map((_,i)=>`<div class="q-dot" id="dot-${i}" onclick="goToQ(${i})">${i+1}</div>`).join('');}
+function updateAllDots(){
   SOAL_ACTIVE.forEach((_,i)=>{
-    const d=document.getElementById('dot-'+i); if(!d)return;
+    const d=document.getElementById('dot-'+i);if(!d)return;
     d.classList.remove('answered','current');
     if(hasAnswer(i)) d.classList.add('answered');
   });
@@ -702,7 +812,7 @@ function updateAllDots() {
   const ans=SOAL_ACTIVE.filter((_,i)=>hasAnswer(i)).length;
   document.getElementById('progress-fill').style.width=(ans/SOAL_ACTIVE.length*100)+'%';
 }
-function hasAnswer(idx) {
+function hasAnswer(idx){
   const j=JAWABAN[idx];
   if(j===undefined||j===null) return false;
   if(typeof j==='string') return j.trim()!=='';
@@ -710,102 +820,60 @@ function hasAnswer(idx) {
   if(typeof j==='object') return Object.keys(j).length>0;
   return false;
 }
-function goToQ(idx) {
-  currentIdx=idx;
-  renderQuestion(idx);
-  document.getElementById('dot-'+idx)?.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
-}
+function goToQ(idx){currentIdx=idx;renderQuestion(idx);document.getElementById('dot-'+idx)?.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});}
 
 // ===== RENDER QUESTION =====
-function renderQuestion(idx) {
-  const q = SOAL_ACTIVE[idx];
-  const typeLabels = {PG:'Pilihan Ganda',PGK:'PG Kompleks',JODOH:'Menjodohkan',BS:'Benar / Salah',ISIAN:'Isian Singkat'};
-  const imgTag = q.gambarSoal ? `<img class="q-img" src="${q.gambarSoal}" alt="Gambar soal" ondragstart="return false">` : '';
-
-  let html = `<div class="q-card">
-    <div class="q-type-badge ${q.tipe}">${typeLabels[q.tipe]||q.tipe}</div>
-    <div class="q-num">Soal ${idx+1} dari ${SOAL_ACTIVE.length}</div>
-    <div class="q-text">${escHtml(q.soal)}</div>
-    ${imgTag}
-    <div class="q-poin">${q.poin} poin</div>
-  </div>`;
-
+function renderQuestion(idx){
+  const q=SOAL_ACTIVE[idx];
+  const typeLabels={PG:'Pilihan Ganda',PGK:'PG Kompleks',JODOH:'Menjodohkan',BS:'Benar / Salah',ISIAN:'Isian Singkat'};
+  const imgTag=q.gambarSoal?`<img class="q-img" src="${q.gambarSoal}" alt="Gambar soal" ondragstart="return false">`:'';
+  let html=`<div class="q-card"><div class="q-type-badge ${q.tipe}">${typeLabels[q.tipe]||q.tipe}</div><div class="q-num">Soal ${idx+1} dari ${SOAL_ACTIVE.length}</div><div class="q-text">${escHtml(q.soal)}</div>${imgTag}<div class="q-poin">${q.poin} poin</div></div>`;
   if(q.tipe==='PG') html+=renderPG(q,idx);
   else if(q.tipe==='PGK') html+=renderPGK(q,idx);
   else if(q.tipe==='JODOH') html+=renderJodoh(q,idx);
   else if(q.tipe==='BS') html+=renderBS(q,idx);
   else if(q.tipe==='ISIAN') html+=renderIsian(q,idx);
-
-  document.getElementById('question-area').innerHTML = html;
-  updateAllDots();
-  updateNavButtons();
+  document.getElementById('question-area').innerHTML=html;
+  updateAllDots();updateNavButtons();
 }
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function optImg(src) {
-  return src ? `<img class="opt-img" src="${src}" alt="gambar" ondragstart="return false">` : '';
-}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function optImg(src){return src?`<img class="opt-img" src="${src}" alt="gambar" ondragstart="return false">`:''}
 
 // ===== PG =====
-function renderPG(q, idx) {
+function renderPG(q,idx){
   const opts=[{l:'A',t:q.opsiA,i:q.gambarOpsiA},{l:'B',t:q.opsiB,i:q.gambarOpsiB},{l:'C',t:q.opsiC,i:q.gambarOpsiC},{l:'D',t:q.opsiD,i:q.gambarOpsiD}].filter(o=>o.t||o.i);
   const cur=JAWABAN[idx]||'';
-  return `<ul class="options-list">
-    ${opts.map(o=>`<li class="opt-item ${cur===o.l?'selected':''}" onclick="selectPG(${idx},'${o.l}',this)">
-      <div class="opt-letter">${o.l}</div>
-      <div class="opt-text">${escHtml(o.t)}${optImg(o.i)}</div>
-    </li>`).join('')}
-  </ul>`;
+  return `<ul class="options-list">${opts.map(o=>`<li class="opt-item ${cur===o.l?'selected':''}" onclick="selectPG(${idx},'${o.l}',this)"><div class="opt-letter">${o.l}</div><div class="opt-text">${escHtml(o.t)}${optImg(o.i)}</div></li>`).join('')}</ul>`;
 }
-function selectPG(idx,letter,el) {
+function selectPG(idx,letter,el){
   JAWABAN[idx]=letter;
   el.closest('.options-list').querySelectorAll('.opt-item').forEach(li=>{li.classList.remove('selected');li.querySelector('.opt-letter').style='';});
-  el.classList.add('selected');
-  updateAllDots();
+  el.classList.add('selected');updateAllDots();
 }
 
-// ===== PGK (Checkbox style, no letters) =====
-function renderPGK(q, idx) {
+// ===== PGK =====
+function renderPGK(q,idx){
   const opts=[{t:q.opsiA,i:q.gambarOpsiA,k:'A'},{t:q.opsiB,i:q.gambarOpsiB,k:'B'},{t:q.opsiC,i:q.gambarOpsiC,k:'C'},{t:q.opsiD,i:q.gambarOpsiD,k:'D'}].filter(o=>o.t||o.i);
   const cur=JAWABAN[idx]||[];
-  return `<div class="pgk-hint">☑️ Pilih semua jawaban yang benar (boleh lebih dari satu)</div>
-  <div class="options-list" id="pgk-${idx}">
-    ${opts.map(o=>`<div class="pgk-item ${cur.includes(o.k)?'checked':''}" onclick="selectPGK(${idx},'${o.k}',this)">
-      <div class="pgk-checkbox">${cur.includes(o.k)?'✓':''}</div>
-      <div class="opt-text">${escHtml(o.t)}${optImg(o.i)}</div>
-    </div>`).join('')}
-  </div>`;
+  return `<div class="pgk-hint">☑️ Pilih semua jawaban yang benar (boleh lebih dari satu)</div><div class="options-list" id="pgk-${idx}">${opts.map(o=>`<div class="pgk-item ${cur.includes(o.k)?'checked':''}" onclick="selectPGK(${idx},'${o.k}',this)"><div class="pgk-checkbox">${cur.includes(o.k)?'✓':''}</div><div class="opt-text">${escHtml(o.t)}${optImg(o.i)}</div></div>`).join('')}</div>`;
 }
-function selectPGK(idx,letter,el) {
+function selectPGK(idx,letter,el){
   if(!JAWABAN[idx]) JAWABAN[idx]=[];
-  const arr=JAWABAN[idx];
-  const i=arr.indexOf(letter);
+  const arr=JAWABAN[idx],i=arr.indexOf(letter);
   if(i>=0){arr.splice(i,1);el.classList.remove('checked');el.querySelector('.pgk-checkbox').textContent='';}
   else{arr.push(letter);el.classList.add('checked');el.querySelector('.pgk-checkbox').textContent='✓';}
   updateAllDots();
 }
 
-// ===== MENJODOHKAN =====
-function renderJodoh(q, idx) {
-  // Parse pasangan dari OPSI_A..D sebagai "kiri" dan JAWABAN sebagai kunci
-  // Format JAWABAN: A-[nilai B]-[nilai C]-[nilai D]-[nilai] atau A-X,B-Y,C-Z,D-W
+// ===== MENJODOHKAN - FULLY FIXED =====
+function renderJodoh(q,idx){
   const lefts=[
-    {k:'A',t:q.opsiA,i:q.gambarOpsiA},
-    {k:'B',t:q.opsiB,i:q.gambarOpsiB},
-    {k:'C',t:q.opsiC,i:q.gambarOpsiC},
-    {k:'D',t:q.opsiD,i:q.gambarOpsiD}
+    {k:'A',t:q.opsiA,i:q.gambarOpsiA},{k:'B',t:q.opsiB,i:q.gambarOpsiB},
+    {k:'C',t:q.opsiC,i:q.gambarOpsiC},{k:'D',t:q.opsiD,i:q.gambarOpsiD}
   ].filter(o=>o.t||o.i);
 
-  // Parse jawaban kunci: format "A-Jawaban1,B-Jawaban2,C-Jawaban3,D-Jawaban4"
   const kunciMap={};
-  q.jawaban.split(',').forEach(p=>{
-    const dash=p.indexOf('-');
-    if(dash>-1){const k=p.substring(0,dash).trim();const v=p.substring(dash+1).trim();kunciMap[k]=v;}
-  });
-  // Collect all unique right-side options
+  q.jawaban.split(',').forEach(p=>{const dash=p.indexOf('-');if(dash>-1){kunciMap[p.substring(0,dash).trim()]=p.substring(dash+1).trim();}});
   const allRights=[...new Set(Object.values(kunciMap))].filter(v=>v);
   const shuffledRights=shuffle([...allRights]);
   const cur=JAWABAN[idx]||{};
@@ -813,108 +881,78 @@ function renderJodoh(q, idx) {
   const pairsHtml=lefts.map(left=>{
     const filled=cur[left.k]||'';
     const imgHtml=left.i?`<img class="match-left-img" src="${left.i}" ondragstart="return false">`:'';
+    const isTapTarget = tapSelected !== null;
     return `<div class="match-row">
       <div class="match-left"><div>${escHtml(left.t)}</div>${imgHtml}</div>
       <div class="match-arrow">→</div>
-      <div class="match-drop ${filled?'filled':''}" id="drop-${idx}-${left.k}" data-letter="${left.k}"
-        ondrop="dropChip(event,'${idx}','${left.k}')"
-        ondragover="e=>{e.preventDefault();e.currentTarget.classList.add('drag-over')}"
-        ondragleave="e=>e.currentTarget.classList.remove('drag-over')"
-        onclick="tapDropHandler('${idx}','${left.k}')">
-        ${filled?`<span>${escHtml(filled)}</span><span class="remove-btn" onclick="removeMatch(event,'${idx}','${left.k}')">✕</span>`:'<span style="font-size:.75rem">Seret jawaban ke sini</span>'}
+      <div class="match-drop ${filled?'filled':''} ${isTapTarget&&!filled?'tap-target':''}"
+        id="drop-${idx}-${left.k}" data-qi="${idx}" data-letter="${left.k}"
+        onclick="tapDropHandler(${idx},'${left.k}')">
+        ${filled
+          ? `<span>${escHtml(filled)}</span><span class="remove-btn" onclick="removeMatch(event,${idx},'${left.k}')">✕</span>`
+          : `<span style="font-size:.72rem;color:var(--muted)">${isTapTarget?'👆 Ketuk untuk isi':'Ketuk jawaban dulu'}</span>`}
       </div>
     </div>`;
   }).join('');
 
   const chipsHtml=shuffledRights.map((opt,i)=>{
     const used=Object.values(cur).includes(opt);
-    return `<div class="match-chip ${used?'used':''}" id="chip-${idx}-${i}"
-      draggable="true" data-val="${escHtml(opt)}" data-qi="${idx}"
-      ondragstart="e=>{e.dataTransfer.setData('text',e.currentTarget.dataset.val);e.currentTarget.classList.add('dragging')}"
-      ondragend="e=>e.currentTarget.classList.remove('dragging')"
-      ontouchstart="touchStart(event,this,'${escHtml(opt)}','${idx}')"
-      ontouchmove="touchMove(event)" ontouchend="touchEnd(event,'${idx}')"
-      onclick="tapSelectChip(this,'${escHtml(opt)}')">${escHtml(opt)}</div>`;
+    const isSelected = tapSelected===opt;
+    return `<div class="match-chip ${used?'used':''} ${isSelected?'tap-selected':''}"
+      id="chip-${idx}-${i}" data-val="${escHtml(opt)}"
+      onclick="tapSelectChip(${idx},'${escHtml(opt)}')">${escHtml(opt)}</div>`;
   }).join('');
 
-  return `<div class="match-instructions">✋ <strong>Cara 1:</strong> Seret jawaban ke kotak kanan &nbsp;|&nbsp; <strong>Cara 2:</strong> Ketuk jawaban → ketuk kotak</div>
+  return `
+  <div class="match-instructions">
+    👆 <strong>Cara pakai:</strong> Ketuk pilihan jawaban → lalu ketuk kotak di sebelah kanan item yang sesuai
+  </div>
   <div class="match-container">
     <div class="match-options-bank" id="bank-${idx}">
-      <span class="match-options-bank-label">PILIHAN JAWABAN:</span>
+      <span class="match-options-bank-label">Pilihan Jawaban — Ketuk untuk pilih:</span>
       ${chipsHtml}
     </div>
     <div class="match-pairs">${pairsHtml}</div>
   </div>`;
 }
 
-function removeMatch(e,qi,letter) {
+function removeMatch(e,qi,letter){
   e.stopPropagation();
   if(!JAWABAN[qi]) return;
   delete JAWABAN[qi][letter];
-  updateAllDots();
+  tapSelected=null;
+  updateAllDots();renderQuestion(currentIdx);
+}
+
+function tapSelectChip(qi,val){
+  // If already selected same chip, deselect
+  if(tapSelected===val){tapSelected=null;}
+  else {tapSelected=val;}
   renderQuestion(currentIdx);
 }
 
-// Touch drag
-function touchStart(e,el,val,qi) {
-  touchData={val,qi};
-  touchDragEl=el;
-  el.classList.add('dragging');
-}
-function touchMove(e) {
-  if(!touchDragEl) return;
-  e.preventDefault();
-  const t=e.touches[0];
-  document.querySelectorAll('.match-drop').forEach(d=>d.classList.remove('drag-over'));
-  const el=document.elementFromPoint(t.clientX,t.clientY);
-  if(el?.classList.contains('match-drop')) el.classList.add('drag-over');
-}
-function touchEnd(e,qi) {
-  if(!touchDragEl) return;
-  touchDragEl.classList.remove('dragging');
-  const t=e.changedTouches[0];
-  document.querySelectorAll('.match-drop').forEach(d=>d.classList.remove('drag-over'));
-  const el=document.elementFromPoint(t.clientX,t.clientY);
-  if(el?.classList.contains('match-drop')) placeChip(qi,el.dataset.letter||el.id.split('-').pop(),touchData.val);
-  touchDragEl=null;
-}
-function dropChip(e,qi,letter) {
-  e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
-  placeChip(qi,letter,e.dataTransfer.getData('text'));
-}
-// Tap to match
-function tapSelectChip(el,val) {
-  if(tapSelected===val){tapSelected=null;document.querySelectorAll('.match-chip').forEach(c=>c.classList.remove('tap-selected'));return;}
-  tapSelected=val;
-  document.querySelectorAll('.match-chip').forEach(c=>c.classList.remove('tap-selected'));
-  el.classList.add('tap-selected');
-}
-function tapDropHandler(qi,letter) {
-  if(tapSelected){
+function tapDropHandler(qi,letter){
+  if(tapSelected!==null){
     placeChip(qi,letter,tapSelected);
     tapSelected=null;
-    document.querySelectorAll('.match-chip').forEach(c=>c.classList.remove('tap-selected'));
   }
 }
-function placeChip(qi,letter,val) {
+
+function placeChip(qi,letter,val){
   if(!JAWABAN[qi]) JAWABAN[qi]={};
-  // Remove val from other slots
+  // Remove val from other slots first
   Object.keys(JAWABAN[qi]).forEach(k=>{if(JAWABAN[qi][k]===val) delete JAWABAN[qi][k];});
   JAWABAN[qi][letter]=val;
-  updateAllDots();
-  renderQuestion(currentIdx);
+  tapSelected=null;
+  updateAllDots();renderQuestion(currentIdx);
 }
 
 // ===== BS =====
-function renderBS(q, idx) {
+function renderBS(q,idx){
   const cur=JAWABAN[idx]||'';
-  return `<div class="bs-options">
-    <button class="bs-btn ${cur==='BENAR'?'selected-true':''}" onclick="selectBS(${idx},'BENAR',this)">✅ BENAR</button>
-    <button class="bs-btn ${cur==='SALAH'?'selected-false':''}" onclick="selectBS(${idx},'SALAH',this)">❌ SALAH</button>
-  </div>`;
+  return `<div class="bs-options"><button class="bs-btn ${cur==='BENAR'?'selected-true':''}" onclick="selectBS(${idx},'BENAR',this)">✅ BENAR</button><button class="bs-btn ${cur==='SALAH'?'selected-false':''}" onclick="selectBS(${idx},'SALAH',this)">❌ SALAH</button></div>`;
 }
-function selectBS(idx,val,el) {
+function selectBS(idx,val,el){
   JAWABAN[idx]=val;
   document.querySelectorAll('#screen-exam .bs-btn').forEach(b=>b.classList.remove('selected-true','selected-false'));
   el.classList.add(val==='BENAR'?'selected-true':'selected-false');
@@ -922,13 +960,13 @@ function selectBS(idx,val,el) {
 }
 
 // ===== ISIAN =====
-function renderIsian(q, idx) {
+function renderIsian(q,idx){
   const cur=JAWABAN[idx]||'';
   return `<input class="isian-input" id="isian-${idx}" type="text" placeholder="Tulis jawaban di sini..." value="${escHtml(cur)}" oninput="JAWABAN[${idx}]=this.value;updateAllDots()">`;
 }
 
 // ===== NAVIGATION =====
-function updateNavButtons() {
+function updateNavButtons(){
   document.getElementById('btn-prev').disabled=currentIdx===0;
   const isLast=currentIdx===SOAL_ACTIVE.length-1;
   document.getElementById('btn-next').style.display=isLast?'none':'';
@@ -938,7 +976,7 @@ function prevQuestion(){if(currentIdx>0){currentIdx--;renderQuestion(currentIdx)
 function nextQuestion(){if(currentIdx<SOAL_ACTIVE.length-1){currentIdx++;renderQuestion(currentIdx);}}
 
 // ===== REVIEW =====
-function showReview() {
+function showReview(){
   const answered=SOAL_ACTIVE.filter((_,i)=>hasAnswer(i)).length;
   document.getElementById('review-summary').textContent=`${answered} dijawab · ${SOAL_ACTIVE.length-answered} belum dijawab`;
   document.getElementById('review-grid').innerHTML=SOAL_ACTIVE.map((q,i)=>{
@@ -958,60 +996,39 @@ function showReview() {
   showScreen('screen-review');
 }
 
-function confirmSubmit() {
+function confirmSubmit(){
   const un=SOAL_ACTIVE.filter((_,i)=>!hasAnswer(i)).length;
-  document.getElementById('modal-text').innerHTML=un>0
-    ?`Masih ada <strong>${un} soal</strong> belum dijawab.<br>Yakin ingin mengumpulkan?`
-    :'Semua soal sudah dijawab. Yakin kumpulkan sekarang?';
+  document.getElementById('modal-text').innerHTML=un>0?`Masih ada <strong>${un} soal</strong> belum dijawab.<br>Yakin ingin mengumpulkan?`:'Semua soal sudah dijawab. Yakin kumpulkan sekarang?';
   document.getElementById('overlay-confirm').classList.add('show');
 }
 function closeModal(){document.getElementById('overlay-confirm').classList.remove('show');}
 
 // ===== SUBMIT =====
-function submitExam() {
-  clearInterval(timerInterval);
-  closeModal();
+function submitExam(){
+  clearInterval(timerInterval);closeModal();
   const durasi=Math.floor((Date.now()-startTime)/1000);
-  const {score,benar,salah}=calculateScore();
-  const result={
-    name:studentData.name,kelas:studentData.kelas,ujian:CFG.namaUjian,
-    score,benar,salah,totalQ:SOAL_ACTIVE.length,
-    durasi:`${Math.floor(durasi/60)}m ${durasi%60}s`,
-    submitTime:new Date().toLocaleString('id-ID')
-  };
-  saveResult(result);
-  showResult(result);
+  const{score,benar,salah}=calculateScore();
+  const result={name:studentData.name,kelas:studentData.kelas,ujian:CFG.namaUjian,score,benar,salah,totalQ:SOAL_ACTIVE.length,durasi:`${Math.floor(durasi/60)}m ${durasi%60}s`,submitTime:new Date().toLocaleString('id-ID')};
+  saveResult(result);showResult(result);
   if(CFG.sheetsUrl) sendToSheets(result);
 }
 
-function calculateScore() {
+function calculateScore(){
   let totalPoin=0,earned=0,benar=0,salah=0;
   SOAL_ACTIVE.forEach((q,i)=>{
     totalPoin+=q.poin;
     const j=JAWABAN[i];
     let correct=false;
-    if(q.tipe==='PG'||q.tipe==='BS'){
-      correct=j&&j.trim().toUpperCase()===q.jawaban.trim().toUpperCase();
-    } else if(q.tipe==='PGK'){
-      const kunci=q.jawaban.split(',').map(x=>x.trim().toUpperCase()).sort().join(',');
-      const siswa=(Array.isArray(j)?j:[]).map(x=>x.trim().toUpperCase()).sort().join(',');
-      correct=kunci===siswa;
-    } else if(q.tipe==='JODOH'){
-      if(j&&typeof j==='object'){
-        const kunciPairs={};
-        q.jawaban.split(',').forEach(p=>{const dash=p.indexOf('-');if(dash>-1){kunciPairs[p.substring(0,dash).trim()]=p.substring(dash+1).trim();}});
-        correct=Object.entries(kunciPairs).every(([k,v])=>j[k]===v);
-      }
-    } else if(q.tipe==='ISIAN'){
-      correct=j&&j.trim().toLowerCase()===q.jawaban.trim().toLowerCase();
-    }
+    if(q.tipe==='PG'||q.tipe==='BS'){correct=j&&j.trim().toUpperCase()===q.jawaban.trim().toUpperCase();}
+    else if(q.tipe==='PGK'){const kunci=q.jawaban.split(',').map(x=>x.trim().toUpperCase()).sort().join(',');const siswa=(Array.isArray(j)?j:[]).map(x=>x.trim().toUpperCase()).sort().join(',');correct=kunci===siswa;}
+    else if(q.tipe==='JODOH'){if(j&&typeof j==='object'){const kunciPairs={};q.jawaban.split(',').forEach(p=>{const dash=p.indexOf('-');if(dash>-1){kunciPairs[p.substring(0,dash).trim()]=p.substring(dash+1).trim();}});correct=Object.entries(kunciPairs).every(([k,v])=>j[k]===v);}}
+    else if(q.tipe==='ISIAN'){correct=j&&j.trim().toLowerCase()===q.jawaban.trim().toLowerCase();}
     if(correct){earned+=q.poin;benar++;}else salah++;
   });
-  const score=totalPoin>0?Math.round(earned/totalPoin*100):0;
-  return{score,benar,salah};
+  return{score:totalPoin>0?Math.round(earned/totalPoin*100):0,benar,salah};
 }
 
-function showResult(r) {
+function showResult(r){
   document.getElementById('res-score').textContent=r.score;
   document.getElementById('res-name').textContent=r.name;
   document.getElementById('res-kelas').textContent=r.kelas+' · '+CFG.namaUjian;
@@ -1026,45 +1043,19 @@ function showResult(r) {
   document.getElementById('res-predikat').innerHTML=`<div class="predikat ${pred}">${pred} — ${predLabel}</div>`;
   showScreen('screen-result');
 }
-function saveResult(r){
-  const arr=JSON.parse(localStorage.getItem('siujian_results')||'[]');
-  arr.push(r);localStorage.setItem('siujian_results',JSON.stringify(arr));
-}
-async function sendToSheets(data) {
+function saveResult(r){const arr=JSON.parse(localStorage.getItem('siujian_results')||'[]');arr.push(r);localStorage.setItem('siujian_results',JSON.stringify(arr));}
+async function sendToSheets(data){
   const el=document.getElementById('saving-note');
   el.textContent='⏳ Menyimpan ke Google Sheets...';
-  try{
-    await fetch(CFG.sheetsUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-    el.textContent='✅ Berhasil disimpan ke Google Sheets!';
-  }catch(e){el.textContent='⚠️ Gagal kirim ke Sheets (cek koneksi)';}
+  try{await fetch(CFG.sheetsUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});el.textContent='✅ Berhasil disimpan ke Google Sheets!';}
+  catch(e){el.textContent='⚠️ Gagal kirim ke Sheets (cek koneksi)';}
 }
 
-function printResult() {
+function printResult(){
   const r=JSON.parse(localStorage.getItem('siujian_results')||'[]').slice(-1)[0];
-  if(!r)return;
+  if(!r) return;
   const w=window.open('');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
-  body{font-family:Arial,sans-serif;padding:2rem;max-width:500px;margin:0 auto;}
-  h1{color:#1A3A5C;border-bottom:2px solid #1A3A5C;padding-bottom:.5rem;}
-  .sc{font-size:4rem;font-weight:800;color:#1A3A5C;text-align:center;margin:1rem 0;}
-  table{width:100%;border-collapse:collapse;margin-top:1rem;}
-  td{padding:.5rem;border:1px solid #ddd;}td:first-child{background:#f5f5f5;font-weight:bold;}
-  .btn{margin-top:1rem;padding:.5rem 1rem;background:#1A3A5C;color:white;border:none;border-radius:6px;cursor:pointer;}
-  @media print{.btn{display:none}}
-  </style></head><body>
-  <h1>📋 Bukti Ujian — SDN Petukangan Utara 01</h1>
-  <div class="sc">${r.score}</div>
-  <table>
-  <tr><td>Nama</td><td>${r.name}</td></tr>
-  <tr><td>Kelas</td><td>${r.kelas}</td></tr>
-  <tr><td>Ujian</td><td>${r.ujian}</td></tr>
-  <tr><td>Nilai</td><td><strong>${r.score} / 100</strong></td></tr>
-  <tr><td>Benar</td><td>${r.benar} dari ${r.totalQ} soal</td></tr>
-  <tr><td>Durasi</td><td>${r.durasi}</td></tr>
-  <tr><td>Waktu Kumpul</td><td>${r.submitTime}</td></tr>
-  </table>
-  <button class="btn" onclick="window.print()">🖨 Cetak / Simpan PDF</button>
-  </body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;padding:2rem;max-width:500px;margin:0 auto;}h1{color:#1A3A5C;border-bottom:2px solid #1A3A5C;padding-bottom:.5rem;}.sc{font-size:4rem;font-weight:800;color:#1A3A5C;text-align:center;margin:1rem 0;}table{width:100%;border-collapse:collapse;margin-top:1rem;}td{padding:.5rem;border:1px solid #ddd;}td:first-child{background:#f5f5f5;font-weight:bold;}.btn{margin-top:1rem;padding:.5rem 1rem;background:#1A3A5C;color:white;border:none;border-radius:6px;cursor:pointer;}@media print{.btn{display:none}}</style></head><body><h1>📋 Bukti Ujian — SDN Petukangan Utara 01</h1><div class="sc">${r.score}</div><table><tr><td>Nama</td><td>${r.name}</td></tr><tr><td>Kelas</td><td>${r.kelas}</td></tr><tr><td>Ujian</td><td>${r.ujian}</td></tr><tr><td>Nilai</td><td><strong>${r.score} / 100</strong></td></tr><tr><td>Benar</td><td>${r.benar} dari ${r.totalQ} soal</td></tr><tr><td>Durasi</td><td>${r.durasi}</td></tr><tr><td>Waktu Kumpul</td><td>${r.submitTime}</td></tr></table><button class="btn" onclick="window.print()">🖨 Cetak / Simpan PDF</button></body></html>`);
   w.document.close();
 }
 function backToLoginFromResult(){showScreen('screen-login');document.getElementById('input-name').value='';document.getElementById('input-kelas').value='';document.getElementById('input-password').value='';}
