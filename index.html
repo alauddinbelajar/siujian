@@ -216,9 +216,10 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 
 /* ADMIN BTN BOTTOM LOGIN */
 .admin-link-wrap{text-align:center;margin-top:.75rem;}
-.admin-link-btn{background:none;border:none;font-size:.78rem;color:var(--muted);cursor:pointer;padding:.3rem .6rem;border-radius:6px;display:inline-flex;align-items:center;gap:.3rem;transition:all .2s;}
-.admin-link-btn:hover{background:rgba(46,109,164,.1);color:var(--primary-light);}
-.admin-link-btn svg{width:14px;height:14px;fill:currentColor;}
+.admin-link-btn{background:rgba(46,109,164,.08);border:1.5px solid rgba(46,109,164,.2);font-size:.88rem;color:var(--primary);cursor:pointer;padding:.6rem 1.2rem;border-radius:10px;display:inline-flex;align-items:center;gap:.5rem;transition:all .2s;font-weight:600;}
+.admin-link-btn:hover{background:rgba(46,109,164,.15);border-color:var(--primary-light);color:var(--primary-light);}
+.admin-link-btn:active{transform:scale(.97);}
+.admin-link-btn svg{width:16px;height:16px;fill:currentColor;}
 
 /* MODAL */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem;}
@@ -301,14 +302,13 @@ input,textarea{-webkit-user-select:text;user-select:text;}
         oninput="onNameInput(this.value)" onkeydown="onNameKeydown(event)" onfocus="onNameInput(this.value)">
       <div class="autocomplete-list" id="autocomplete-list" style="display:none"></div>
     </div>
-    <div class="form-group">
+    <div class="form-group" id="kelas-group" style="display:none">
       <label>Kelas</label>
-      <select id="input-kelas">
-        <option value="">-- Pilih Kelas --</option>
-        <option value="5">5</option>
-        <option value="5-A">5-A</option>
-        <option value="5-B">5-B</option>
-      </select>
+      <div id="kelas-display" style="width:100%;padding:.75rem 1rem;border:1.5px solid var(--success);border-radius:10px;font-size:1rem;color:var(--text);background:#f0fdf8;font-weight:600;display:flex;align-items:center;gap:.5rem;">
+        <span style="color:var(--success)">✅</span>
+        <span id="kelas-text"></span>
+      </div>
+      <input type="hidden" id="input-kelas">
     </div>
     <div class="form-group" id="pwd-group" style="display:none">
       <label>Password Ujian</label>
@@ -319,8 +319,8 @@ input,textarea{-webkit-user-select:text;user-select:text;}
     <button class="btn-primary" onclick="doLogin()">Mulai Ujian →</button>
     <div class="admin-link-wrap">
       <button class="admin-link-btn" onclick="openAdminLogin()">
-        <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
-        Admin
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+        🔐 Admin Panel
       </button>
     </div>
   </div>
@@ -485,14 +485,14 @@ const SISWA_5A = [
   "VANESSA AUNI BATRISYIA"
 ];
 const SISWA_5B = [
-  "AL DHIRGAM NAINI AKBAR","ALFIAN SAPUTRA","ALIKA PUTRI BILQIS","ALMIA RAIDA FAKHIRA",
-  "ANINDITA KHAIRINISWA","AYRA ROKIAH HASANAH","AZKA ARRAFIF RAMADAN","AZZAHRA DESTIANA PUTRI",
-  "BALQIS AZZURA","BILQIS SYUJA WIBOWO","FAIZ ALKAMIL SYARIFUDIN","FAJAR DENIEL RAMADHAN",
-  "GHAISAN ALI RABBANI IBRAHIM","JIHAN ALMIRA SALSABILA","JUNIO ANWAR ALKHALIFI","KAMILAH JAMALUDIN",
-  "LUISA JASMINE ASMIRANDA","MUHAMMAD ABDUL HABIB","MUHAMMAD LIONEL BENJAMIN","NADINE PERMATA PUTRI",
-  "NAYAKA AMORA CHARDIN","QIYANA PRIMA PUTRI","RAJAB MAULANA","REXA BRIGHITA ORIANA",
-  "REYHAN ANDRA PRADITO","RIO DIRGANTARA RAHARGIYANTO","TRISTAN AGASTYA","VALENCIA AUNI BATRISYIA",
-  "VANESSA AUNI BATRISYIA","ZAHDAN DIRGA ALFARIZI"
+  "ABIYAN NANDANA SETIAWAN","ADEVA AFSHEN MYESHA","AFIFAH APRILIA NOVIANTI","ALBIANSYAH AL FATAH",
+  "ALI SUKARNO DARMAIS","ALISHA IZDIHAAR MAULIDA","ALIYA ZAIRA MAHARANI","ANISA APRILIA",
+  "AQILLA RAMADHANI NUGROHO","AZ ZAHRA FISSILMI KAFFAH","BIANCA CHERRYL NURHAFIZHA","BILAL ALI BAIHAQI",
+  "ELVIN RAFA ALMAHDI","FARAH KHANZA MAULIDYA","IHKWAN AINUR RAFIQI","JABAL RAMADAN",
+  "JIHAN ALESHA RAFANDA","KANAYA AZALIA YUSUF","KENZO FAWWAZ ALLEYZIO","KESYHA AZZALEA MIRZA",
+  "MICHELLE YEMIMA NAZMALEICA NADAPDAP","MUHAMAD RASYID AL RACHMAN","MUHAMMAD ASKAH ALIPAN",
+  "MUHAMMAD AWWAN ARJUNA","MUHAMMAD DZAKIR KHAFADI","SHEINAFIA AISYABILLA",
+  "SYATIFA HUMAIRAH KATANIA","TIARA HAFIFAH"
 ];
 const SISWA_ALL = [...new Set([...SISWA_5A, ...SISWA_5B])].sort();
 
@@ -525,13 +525,7 @@ window.onload = () => {
   syncAdminForm();
   updateLoginUI();
   setupProtection();
-  // Auto-set kelas when name is selected
-  document.getElementById('input-kelas').addEventListener('change', () => {
-    const kelas = document.getElementById('input-kelas').value;
-    // filter autocomplete by kelas
-    const name = document.getElementById('input-name').value;
-    if(name) onNameInput(name);
-  });
+  // Kelas is set automatically when name is selected
   setTimeout(() => {
     document.getElementById('loading').classList.add('hidden');
     showScreen('screen-login');
@@ -547,9 +541,11 @@ function getSiswaByKelas(kelas) {
 
 function onNameInput(val) {
   const list = document.getElementById('autocomplete-list');
-  const kelas = document.getElementById('input-kelas').value;
+  // Reset kelas display when user types new name
+  document.getElementById('kelas-group').style.display = 'none';
+  document.getElementById('input-kelas').value = '';
   if(!val || val.length < 2) { list.style.display='none'; acActiveIdx=-1; return; }
-  const pool = getSiswaByKelas(kelas);
+  const pool = SISWA_ALL;
   const q = val.toUpperCase();
   const matches = pool.filter(n => n.includes(q)).slice(0, 8);
   if(!matches.length) { list.style.display='none'; return; }
@@ -588,14 +584,17 @@ function selectName(name, e) {
   if(e) e.preventDefault();
   document.getElementById('input-name').value = name;
   document.getElementById('autocomplete-list').style.display = 'none';
-  // Auto-set kelas based on which list the student is in
-  const kelas = document.getElementById('input-kelas').value;
-  if(!kelas) {
-    if(SISWA_5A.includes(name) && !SISWA_5B.includes(name)) {
-      document.getElementById('input-kelas').value = '5-A';
-    } else if(SISWA_5B.includes(name) && !SISWA_5A.includes(name)) {
-      document.getElementById('input-kelas').value = '5-B';
-    }
+  // Auto-detect kelas
+  const inA = SISWA_5A.includes(name);
+  const inB = SISWA_5B.includes(name);
+  let kelas = '';
+  if(inA && !inB) kelas = '5-A';
+  else if(inB && !inA) kelas = '5-B';
+  else if(inA && inB) kelas = '5-A'; // default to 5-A if in both
+  if(kelas) {
+    document.getElementById('input-kelas').value = kelas;
+    document.getElementById('kelas-text').textContent = 'Kelas ' + kelas;
+    document.getElementById('kelas-group').style.display = 'block';
   }
 }
 
