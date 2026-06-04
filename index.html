@@ -162,22 +162,40 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
 .btn-confirm-submit{flex:2;padding:.8rem;background:var(--danger);color:white;border-radius:10px;font-weight:700;}
 
 /* RESULT */
-#screen-result{background:var(--bg);align-items:center;justify-content:center;padding:1.5rem;}
-.result-card{background:white;border-radius:20px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.12);}
-.result-header{background:linear-gradient(135deg,var(--primary),var(--primary-light));padding:2rem 1.5rem;text-align:center;color:white;}
-.score-circle{width:100px;height:100px;border-radius:50%;border:4px solid rgba(255,255,255,.3);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 1rem;background:rgba(255,255,255,.1);}
-.score-number{font-size:2.2rem;font-weight:800;}
-.score-label{font-size:.7rem;opacity:.8;}
-.result-stats{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;padding:1.25rem;padding-bottom:0;}
-.stat-box{background:var(--bg);border-radius:10px;padding:.75rem;text-align:center;}
-.stat-box .sv{font-size:1.4rem;font-weight:700;color:var(--primary);}
-.stat-box .sk{font-size:.72rem;color:var(--muted);margin-top:.2rem;}
-.result-actions{display:flex;flex-direction:column;gap:.5rem;padding:1.25rem;}
-.btn-result{width:100%;padding:.85rem;border-radius:10px;font-weight:700;font-size:.95rem;}
-.btn-result.primary{background:var(--primary);color:white;}
-.btn-result.secondary{background:var(--bg);border:2px solid var(--border);color:var(--primary);}
-.predikat{display:inline-block;padding:.3rem 1rem;border-radius:20px;font-weight:700;font-size:.85rem;margin-top:.5rem;background:rgba(255,255,255,.2);}
-.saving-note{font-size:.78rem;color:var(--muted);text-align:center;padding:.25rem 1.25rem;}
+#screen-result{background:var(--bg);flex-direction:column;}
+.result-topbar{background:linear-gradient(135deg,var(--primary),var(--primary-light));padding:1.25rem 1rem 1rem;flex-shrink:0;}
+.result-card-header{display:flex;align-items:center;gap:1rem;margin-bottom:.75rem;}
+.score-circle{width:80px;height:80px;border-radius:50%;border:3px solid rgba(255,255,255,.3);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;background:rgba(255,255,255,.1);}
+.score-number{font-size:1.8rem;font-weight:800;color:white;}
+.score-label{font-size:.62rem;opacity:.8;color:white;}
+.result-stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:.6rem;}
+.stat-box{background:rgba(255,255,255,.15);border-radius:8px;padding:.5rem .25rem;text-align:center;}
+.stat-box .sv{font-size:1.1rem;font-weight:700;color:white;}
+.stat-box .sk{font-size:.6rem;color:rgba(255,255,255,.8);margin-top:.1rem;}
+.result-btn-row{display:flex;gap:.5rem;margin-top:.5rem;}
+.btn-result-sm{flex:1;padding:.65rem;border-radius:8px;font-weight:700;font-size:.85rem;}
+.btn-result-sm.primary{background:rgba(255,255,255,.2);color:white;border:1.5px solid rgba(255,255,255,.4);}
+.btn-result-sm.secondary{background:white;color:var(--primary);}
+.predikat{display:inline-block;padding:.25rem .8rem;border-radius:20px;font-weight:700;font-size:.8rem;background:rgba(255,255,255,.2);color:white;}
+.saving-note{font-size:.72rem;color:rgba(255,255,255,.75);text-align:center;padding:.2rem 0 .4rem;}
+
+/* ANALISIS */
+.analisis-item{background:white;border-radius:10px;margin-bottom:.6rem;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.07);}
+.analisis-head{display:flex;align-items:center;gap:.5rem;padding:.65rem .85rem;border-left:4px solid var(--border);}
+.analisis-head.benar{border-left-color:var(--success);}
+.analisis-head.salah{border-left-color:var(--danger);}
+.analisis-icon{font-size:1rem;flex-shrink:0;}
+.analisis-num{font-size:.72rem;color:var(--muted);flex-shrink:0;}
+.analisis-soal{font-size:.82rem;flex:1;color:var(--text);line-height:1.4;}
+.analisis-poin{font-size:.7rem;font-weight:700;padding:.15rem .45rem;border-radius:4px;flex-shrink:0;}
+.analisis-poin.ok{background:#EAF4E7;color:var(--success);}
+.analisis-poin.no{background:#FDEDEC;color:var(--danger);}
+.analisis-body{padding:.6rem .85rem;background:#FAFBFC;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:.3rem;}
+.analisis-row{display:flex;gap:.5rem;font-size:.8rem;align-items:flex-start;}
+.analisis-label{color:var(--muted);min-width:70px;font-weight:600;font-size:.72rem;}
+.analisis-val{color:var(--text);flex:1;line-height:1.4;}
+.analisis-val.correct{color:var(--success);font-weight:700;}
+.analisis-val.wrong{color:var(--danger);}
 
 /* ===== ADMIN PANEL ===== */
 #screen-admin{background:var(--bg);}
@@ -379,29 +397,34 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
 
 <!-- SCREEN RESULT -->
 <div class="screen" id="screen-result">
-  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:var(--bg);">
-    <div class="result-card">
-      <div class="result-header">
-        <div class="score-circle">
-          <span class="score-number" id="res-score">0</span>
-          <span class="score-label">Nilai</span>
-        </div>
+  <div class="result-topbar">
+    <div class="result-card-header">
+      <div class="score-circle">
+        <span class="score-number" id="res-score">0</span>
+        <span class="score-label">Nilai</span>
+      </div>
+      <div>
         <div class="predikat" id="res-pred"></div>
-        <h2 id="res-name" style="margin-top:.5rem;font-size:1.1rem;"></h2>
-        <p id="res-kelas" style="font-size:.8rem;opacity:.8;"></p>
-      </div>
-      <div class="result-stats">
-        <div class="stat-box"><div class="sv" id="res-benar">0</div><div class="sk">✅ Benar</div></div>
-        <div class="stat-box"><div class="sv" id="res-salah">0</div><div class="sk">❌ Salah</div></div>
-        <div class="stat-box"><div class="sv" id="res-total">0</div><div class="sk">📝 Total Soal</div></div>
-        <div class="stat-box"><div class="sv" id="res-durasi">-</div><div class="sk">⏱ Durasi</div></div>
-      </div>
-      <p class="saving-note" id="saving-note" style="margin-top:.75rem;"></p>
-      <div class="result-actions">
-        <button class="btn-result primary" onclick="printResult()">🖨️ Cetak Bukti</button>
-        <button class="btn-result secondary" onclick="resetLogin()">🔄 Ujian Baru</button>
+        <h2 id="res-name" style="margin-top:.4rem;font-size:1.05rem;color:white;"></h2>
+        <p id="res-kelas" style="font-size:.78rem;opacity:.8;color:white;"></p>
       </div>
     </div>
+    <div class="result-stats-row">
+      <div class="stat-box"><div class="sv" id="res-benar">0</div><div class="sk">✅ Benar</div></div>
+      <div class="stat-box"><div class="sv" id="res-salah">0</div><div class="sk">❌ Salah</div></div>
+      <div class="stat-box"><div class="sv" id="res-total">0</div><div class="sk">📝 Total</div></div>
+      <div class="stat-box"><div class="sv" id="res-durasi">-</div><div class="sk">⏱ Durasi</div></div>
+    </div>
+    <p class="saving-note" id="saving-note"></p>
+    <div class="result-btn-row">
+      <button class="btn-result-sm primary" onclick="printResult()">🖨️ Cetak</button>
+      <button class="btn-result-sm secondary" onclick="resetLogin()">🔄 Ujian Baru</button>
+    </div>
+  </div>
+  <!-- ANALISIS PER SOAL -->
+  <div style="padding:.75rem;flex:1;overflow-y:auto;background:var(--bg);">
+    <div style="font-size:.85rem;font-weight:700;color:var(--primary);margin-bottom:.6rem;padding:.4rem .2rem;">📊 Analisis Jawaban Per Soal</div>
+    <div id="analisis-list"></div>
   </div>
 </div>
 
@@ -472,7 +495,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
 // CONFIG & STATE
 // =========================================================
 const ADMIN_PWD = 'admin@123';
-let CFG = { namaUjian:'Ujian PAI', waktuMenit:60, acakSoal:true, password:'', sheetsUrl:'' };
+let CFG = { namaUjian:'Ujian PAI', waktuMenit:60, acakSoal:true, password:'', sheetsUrl:'https://script.google.com/macros/s/AKfycbxzQ0-p5KTspGDUK_yjKgfGtlbwIz2rupztuVxI-vVTwcmmFuOyrCEXQwPqXV-YgVaB/exec' };
 let SOAL = [];
 let SOAL_ACTIVE = [];
 let JAWABAN = {};
@@ -512,16 +535,44 @@ const SISWA_ALL = [...new Set([...SISWA_5A,...SISWA_5B])].sort();
 // =========================================================
 // INIT
 // =========================================================
-window.onload = () => {
+window.onload = async () => {
   try {
     const sc = localStorage.getItem('siujian_cfg');
-    const ss = localStorage.getItem('siujian_soal');
-    if(sc) Object.assign(CFG, JSON.parse(sc));
-    if(ss) SOAL = JSON.parse(ss);
+    if(sc) {
+      const saved = JSON.parse(sc);
+      // Keep hardcoded URL, only restore other settings
+      const url = CFG.sheetsUrl;
+      Object.assign(CFG, saved);
+      CFG.sheetsUrl = url; // always use hardcoded URL
+    }
   } catch(e){}
+  // Always fetch soal from Sheets on every load
+  await fetchSoalFromSheets();
   updateLoginUI();
-  setTimeout(()=>{ document.getElementById('loading').classList.add('hidden'); showScreen('screen-login'); }, 1200);
+  setTimeout(()=>{ document.getElementById('loading').classList.add('hidden'); showScreen('screen-login'); }, 800);
 };
+
+async function fetchSoalFromSheets() {
+  if(!CFG.sheetsUrl) return;
+  try {
+    const res = await fetch(CFG.sheetsUrl + '?action=getSoal', {method:'GET', mode:'cors'});
+    const data = await res.json();
+    if(data.soal && Array.isArray(data.soal) && data.soal.length > 0) {
+      SOAL = data.soal;
+      localStorage.setItem('siujian_soal', JSON.stringify(SOAL));
+    } else {
+      // fallback to localStorage if fetch returns empty
+      const ss = localStorage.getItem('siujian_soal');
+      if(ss) SOAL = JSON.parse(ss);
+    }
+  } catch(e) {
+    // fallback to localStorage if offline/error
+    try {
+      const ss = localStorage.getItem('siujian_soal');
+      if(ss) SOAL = JSON.parse(ss);
+    } catch(e2){}
+  }
+}
 
 function updateLoginUI() {
   document.getElementById('no-exam-note').style.display = SOAL.length ? 'none' : 'block';
@@ -1067,7 +1118,77 @@ function showResult(r){
   else if(r.score>=75){pred='B';pl='Baik';}
   else if(r.score>=60){pred='C';pl='Cukup';}
   document.getElementById('res-pred').textContent=`${pred} — ${pl}`;
+  renderAnalisis();
   showScreen('screen-result');
+}
+
+function renderAnalisis(){
+  const TYPE_LABELS={PG:'Pilihan Ganda',PGK:'PG Kompleks',JODOH:'Menjodohkan',BS:'Benar/Salah',ISIAN:'Isian'};
+  const html = SOAL_ACTIVE.map((q,i)=>{
+    const j = JAWABAN[i];
+    let siswaAns='', kunciAns='', isBenar=false;
+
+    // Format jawaban siswa & kunci
+    if(q.tipe==='PG'||q.tipe==='BS'){
+      siswaAns = j ? String(j).toUpperCase() : '(tidak dijawab)';
+      kunciAns = String(q.jawaban).toUpperCase();
+      isBenar = siswaAns === kunciAns;
+    } else if(q.tipe==='PGK'){
+      const arr = Array.isArray(j) ? j : [];
+      siswaAns = arr.length ? arr.sort().join(', ') : '(tidak dijawab)';
+      kunciAns = String(q.jawaban).split(',').map(x=>x.trim().toUpperCase()).sort().join(', ');
+      isBenar = siswaAns === kunciAns;
+    } else if(q.tipe==='JODOH'){
+      const km={};
+      String(q.jawaban).split(',').forEach(p=>{const d=p.indexOf('-');if(d>-1)km[p.substring(0,d).trim()]=p.substring(d+1).trim();});
+      kunciAns = Object.entries(km).map(([k,v])=>`${k} → ${v}`).join(', ');
+      if(j && typeof j==='object' && Object.keys(j).length>0){
+        siswaAns = Object.entries(j).map(([k,v])=>`${k} → ${v}`).join(', ');
+        isBenar = Object.entries(km).every(([k,v])=>j[k]===v);
+      } else {
+        siswaAns = '(tidak dijawab)';
+        isBenar = false;
+      }
+    } else if(q.tipe==='ISIAN'){
+      siswaAns = j ? String(j).trim() : '(tidak dijawab)';
+      kunciAns = String(q.jawaban).trim();
+      isBenar = siswaAns.toLowerCase() === kunciAns.toLowerCase();
+    }
+
+    // Opsi label untuk PG
+    let opsiLabel = '';
+    if(q.tipe==='PG' && siswaAns && siswaAns!=='(tidak dijawab)'){
+      const opsiMap={A:q.opsiA,B:q.opsiB,C:q.opsiC,D:q.opsiD};
+      const teks = opsiMap[siswaAns];
+      if(teks) opsiLabel = ` (${esc(teks)})`;
+    }
+    let kunciLabel = '';
+    if(q.tipe==='PG'){
+      const opsiMap={A:q.opsiA,B:q.opsiB,C:q.opsiC,D:q.opsiD};
+      const teks = opsiMap[kunciAns];
+      if(teks) kunciLabel = ` (${esc(teks)})`;
+    }
+
+    return `<div class="analisis-item">
+      <div class="analisis-head ${isBenar?'benar':'salah'}">
+        <span class="analisis-icon">${isBenar?'✅':'❌'}</span>
+        <span class="analisis-num">${i+1}.</span>
+        <span class="analisis-soal">${esc(q.soal.substring(0,80))}${q.soal.length>80?'...':''}</span>
+        <span class="analisis-poin ${isBenar?'ok':'no'}">${isBenar?'+'+q.poin:'0'} pt</span>
+      </div>
+      <div class="analisis-body">
+        <div class="analisis-row">
+          <span class="analisis-label">Jawabanmu:</span>
+          <span class="analisis-val ${isBenar?'correct':'wrong'}">${siswaAns}${opsiLabel}</span>
+        </div>
+        ${!isBenar?`<div class="analisis-row">
+          <span class="analisis-label">Jawaban benar:</span>
+          <span class="analisis-val correct">${kunciAns}${kunciLabel}</span>
+        </div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('analisis-list').innerHTML = html;
 }
 
 async function sendHasil(data){
