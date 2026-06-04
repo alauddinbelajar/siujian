@@ -199,6 +199,31 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
 
 /* ===== ADMIN PANEL ===== */
 #screen-admin{background:var(--bg);}
+.dashboard-card{background:white;border-radius:14px;padding:1.25rem;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:1rem;}
+.dash-stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:.75rem;}
+.dash-stat{background:var(--bg);border-radius:10px;padding:.75rem .5rem;text-align:center;}
+.dash-stat .ds-val{font-size:1.5rem;font-weight:800;color:var(--primary);}
+.dash-stat .ds-key{font-size:.68rem;color:var(--muted);margin-top:.15rem;}
+.kelas-progress{margin-bottom:.75rem;}
+.kelas-prog-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;}
+.kelas-prog-label{font-size:.8rem;font-weight:700;color:var(--text);min-width:45px;}
+.kelas-prog-bar{flex:1;background:var(--border);border-radius:99px;height:10px;overflow:hidden;}
+.kelas-prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--primary-light),var(--accent));transition:width .4s;}
+.kelas-prog-pct{font-size:.75rem;color:var(--muted);min-width:40px;text-align:right;}
+.hasil-table-wrap{overflow-x:auto;margin-top:.5rem;border-radius:8px;overflow:hidden;border:1px solid var(--border);}
+.hasil-table{width:100%;border-collapse:collapse;font-size:.78rem;}
+.hasil-table th{background:var(--primary);color:white;padding:.5rem .6rem;text-align:left;font-weight:700;white-space:nowrap;}
+.hasil-table td{padding:.45rem .6rem;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap;}
+.hasil-table tr:last-child td{border-bottom:none;}
+.hasil-table tr:nth-child(even) td{background:#FAFBFC;}
+.nilai-badge{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-weight:700;font-size:.75rem;}
+.nilai-badge.A{background:#EAF4E7;color:var(--success);}
+.nilai-badge.B{background:#EBF5FB;color:var(--primary-light);}
+.nilai-badge.C{background:#FEF9E7;color:var(--jodoh);}
+.nilai-badge.D{background:#FDEDEC;color:var(--danger);}
+.btn-sheets-link{display:inline-flex;align-items:center;gap:.4rem;background:#1A7340;color:white;border-radius:8px;padding:.4rem .75rem;font-size:.78rem;font-weight:700;text-decoration:none;transition:all .2s;border:none;cursor:pointer;margin-left:.5rem;}
+.btn-sheets-link:hover{background:#155d33;transform:scale(.98);}
+.empty-hasil{text-align:center;padding:1.5rem;color:var(--muted);font-size:.85rem;}
 .admin-topbar{background:var(--primary);color:white;padding:.85rem 1rem;display:flex;align-items:center;gap:.75rem;}
 .admin-topbar h2{font-size:1rem;font-weight:700;flex:1;}
 .admin-badge{background:var(--accent);color:white;border-radius:6px;padding:.2rem .65rem;font-size:.72rem;font-weight:700;}
@@ -441,6 +466,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
     <div class="admin-card">
       <h3>🔗 Koneksi Google Sheets</h3>
       <input class="sheets-url-input" id="sheets-script-url" placeholder="Paste URL Apps Script di sini..." type="url">
+      <input class="sheets-url-input" id="sheets-direct-url" placeholder="URL Google Sheets (untuk tombol Buka Sheets) — opsional" type="url" style="margin-top:.4rem;">
       <button class="btn-connect" id="btn-connect" onclick="connectSheets()">Hubungkan ke Google Sheets</button>
       <div class="connect-status" id="connect-status" style="display:none"></div>
       <div class="sheets-info-box" style="margin-top:.75rem;">
@@ -478,12 +504,21 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
       <button class="btn-add-soal" onclick="addNewSoal()">+ Tambah Soal Baru</button>
     </div>
 
-    <!-- AKSI -->
-    <div class="admin-card">
-      <h3>📊 Data & Aksi</h3>
-      <div class="admin-action-btns">
-        <button class="btn-adm blue" onclick="exportCSV()">📥 Export Hasil ke CSV</button>
-        <button class="btn-adm red" onclick="clearData()">🗑️ Reset Semua Hasil</button>
+    <!-- DASHBOARD HASIL -->
+    <div class="admin-card" id="dashboard-card">
+      <h3>📊 Dashboard Hasil Ujian
+        <button class="btn-sheets-link" onclick="openSheets()" style="margin-left:.5rem;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+          Buka Google Sheets
+        </button>
+      </h3>
+      <div id="dashboard-content">
+        <div class="empty-hasil">⏳ Memuat data...</div>
+      </div>
+      <div style="display:flex;gap:.5rem;margin-top:.75rem;">
+        <button class="btn-adm blue" style="flex:1" onclick="loadHasilDashboard()">🔄 Refresh</button>
+        <button class="btn-adm green" style="flex:1" onclick="exportCSV()">📥 Export CSV</button>
+        <button class="btn-adm red" style="flex:1" onclick="clearData()">🗑️ Reset</button>
       </div>
     </div>
 
@@ -496,6 +531,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
 // =========================================================
 const ADMIN_PWD = 'admin@123';
 let CFG = { namaUjian:'Ujian PAI', waktuMenit:60, acakSoal:true, password:'', sheetsUrl:'https://script.google.com/macros/s/AKfycbxzQ0-p5KTspGDUK_yjKgfGtlbwIz2rupztuVxI-vVTwcmmFuOyrCEXQwPqXV-YgVaB/exec' };
+let adminLoggedIn = false;
 let SOAL = [];
 let SOAL_ACTIVE = [];
 let JAWABAN = {};
@@ -627,6 +663,7 @@ function openAdminOverlay() {
 function closeAdminOverlay() { document.getElementById('admin-overlay').classList.remove('show'); }
 function doAdminLogin() {
   if(document.getElementById('admin-pwd').value === ADMIN_PWD) {
+    adminLoggedIn = true;
     closeAdminOverlay();
     loadAdminPanel();
     showScreen('screen-admin');
@@ -640,15 +677,30 @@ function doAdminLogin() {
 // =========================================================
 // ADMIN PANEL
 // =========================================================
-function loadAdminPanel() {
-  // Sync settings form
+async function loadAdminPanel() {
   document.getElementById('cfg-nama').value = CFG.namaUjian;
   document.getElementById('cfg-waktu').value = CFG.waktuMenit;
   document.getElementById('cfg-acak').value = CFG.acakSoal ? '1' : '0';
   document.getElementById('cfg-password').value = CFG.password || '';
   document.getElementById('sheets-script-url').value = CFG.sheetsUrl || '';
-  // Load soal editor
+  document.getElementById('sheets-direct-url').value = CFG.sheetsDirectUrl || '';
+  // Always reload soal from Sheets when entering admin
+  if(CFG.sheetsUrl) {
+    document.getElementById('soal-empty').style.display='none';
+    document.getElementById('soal-loading').style.display='block';
+    try {
+      const res = await fetch(CFG.sheetsUrl+'?action=getSoal',{method:'GET',mode:'cors'});
+      const data = await res.json();
+      if(data.soal && data.soal.length>0){
+        SOAL = data.soal;
+        localStorage.setItem('siujian_soal',JSON.stringify(SOAL));
+      }
+    } catch(e){}
+    document.getElementById('soal-loading').style.display='none';
+  }
   renderSoalEditor();
+  // Load hasil for dashboard
+  loadHasilDashboard();
 }
 
 function saveSettings() {
@@ -656,6 +708,7 @@ function saveSettings() {
   CFG.waktuMenit = parseInt(document.getElementById('cfg-waktu').value)||60;
   CFG.acakSoal = document.getElementById('cfg-acak').value==='1';
   CFG.password = document.getElementById('cfg-password').value;
+  CFG.sheetsDirectUrl = document.getElementById('sheets-direct-url').value;
   localStorage.setItem('siujian_cfg', JSON.stringify(CFG));
   localStorage.setItem('siujian_soal', JSON.stringify(SOAL));
   updateLoginUI();
@@ -851,6 +904,7 @@ const SHEET_NAME_HASIL = 'HASIL';
 function doGet(e) {
   const action = e.parameter.action;
   if (action === 'getSoal') return getSoal();
+  if (action === 'getHasil') return getHasil();
   return ContentService.createTextOutput(JSON.stringify({error:'Unknown action'})).setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -905,6 +959,20 @@ function saveHasil(data) {
 
 function setupSoalHeader(sheet) {
   sheet.appendRow(['tipe','soal','opsiA','opsiB','opsiC','opsiD','jawaban','poin','gambarSoal','gambarOpsiA','gambarOpsiB','gambarOpsiC','gambarOpsiD']);
+}
+
+function getHasil() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_NAME_HASIL);
+  if (!sheet || sheet.getLastRow() <= 1) return ContentService.createTextOutput(JSON.stringify({hasil:[]})).setMimeType(ContentService.MimeType.JSON);
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const hasil = data.slice(1).filter(r=>r[0]).map(r => {
+    const obj = {};
+    headers.forEach((h,i) => obj[String(h).toLowerCase()] = r[i] !== undefined ? String(r[i]) : '');
+    return obj;
+  });
+  return ContentService.createTextOutput(JSON.stringify({hasil})).setMimeType(ContentService.MimeType.JSON);
 }`;
   const blob = new Blob([code], {type:'text/plain;charset=utf-8'});
   const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='siujian-apps-script.gs'; a.click();
@@ -1207,8 +1275,109 @@ function printResult(){
   w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;padding:2rem;max-width:500px;margin:0 auto;}h1{color:#1A3A5C;border-bottom:2px solid #1A3A5C;padding-bottom:.5rem;}.sc{font-size:4rem;font-weight:800;color:#1A3A5C;text-align:center;margin:1rem 0;}table{width:100%;border-collapse:collapse;margin:1rem 0;}td{padding:.5rem;border:1px solid #ddd;}td:first-child{background:#f5f5f5;font-weight:bold;}.btn{margin-top:1rem;padding:.5rem 1rem;background:#1A3A5C;color:white;border:none;border-radius:6px;cursor:pointer;}@media print{.btn{display:none}}</style></head><body><h1>📋 Bukti Ujian — SDN Petukangan Utara 01</h1><div class="sc">${r.score}</div><table><tr><td>Nama</td><td>${r.name}</td></tr><tr><td>Kelas</td><td>${r.kelas}</td></tr><tr><td>Ujian</td><td>${r.ujian}</td></tr><tr><td>Nilai</td><td><strong>${r.score} / 100</strong></td></tr><tr><td>Benar</td><td>${r.benar} dari ${r.totalQ} soal</td></tr><tr><td>Durasi</td><td>${r.durasi}</td></tr><tr><td>Waktu</td><td>${r.submitTime}</td></tr></table><button class="btn" onclick="window.print()">🖨 Cetak / Simpan PDF</button></body></html>`);
   w.document.close();
 }
-function resetLogin(){showScreen('screen-login');document.getElementById('input-name').value='';document.getElementById('input-kelas').value='';document.getElementById('kelas-group').style.display='none';document.getElementById('input-password').value='';}
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function resetLogin(){
+  adminLoggedIn = false;
+  showScreen('screen-login');
+  document.getElementById('input-name').value='';
+  document.getElementById('input-kelas').value='';
+  document.getElementById('kelas-group').style.display='none';
+  document.getElementById('input-password').value='';
+}
+
+// =========================================================
+// SHEETS LINK
+// =========================================================
+function openSheets(){
+  // Open Google Sheets - user needs to navigate to their sheet
+  // We store the sheets URL separately if set
+  if(CFG.sheetsDirectUrl){
+    window.open(CFG.sheetsDirectUrl, '_blank');
+  } else {
+    window.open('https://docs.google.com/spreadsheets/', '_blank');
+  }
+}
+
+// =========================================================
+// DASHBOARD HASIL
+// =========================================================
+async function loadHasilDashboard(){
+  const el = document.getElementById('dashboard-content');
+  el.innerHTML = '<div class="empty-hasil">⏳ Memuat data hasil...</div>';
+  let hasil = [];
+  // Try fetch from Sheets first
+  if(CFG.sheetsUrl){
+    try{
+      const res = await fetch(CFG.sheetsUrl+'?action=getHasil',{method:'GET',mode:'cors'});
+      const data = await res.json();
+      if(data.hasil && Array.isArray(data.hasil)) hasil = data.hasil;
+    }catch(e){}
+  }
+  // Fallback to localStorage
+  if(!hasil.length){
+    hasil = JSON.parse(localStorage.getItem('siujian_results')||'[]');
+  }
+
+  if(!hasil.length){ el.innerHTML='<div class="empty-hasil">📭 Belum ada hasil ujian.</div>'; return; }
+
+  // Stats
+  const total = hasil.length;
+  const rataRata = Math.round(hasil.reduce((s,r)=>s+(parseFloat(r.score)||0),0)/total);
+  const lulus = hasil.filter(r=>parseFloat(r.score)>=75).length;
+
+  // Per kelas
+  const kelas5A = hasil.filter(r=>r.kelas==='5-A');
+  const kelas5B = hasil.filter(r=>r.kelas==='5-B');
+  const totalA = SISWA_5A.length, totalB = SISWA_5B.length;
+  const pctA = totalA ? Math.round(kelas5A.length/totalA*100) : 0;
+  const pctB = totalB ? Math.round(kelas5B.length/totalB*100) : 0;
+
+  // Build table rows - sort by kelas then nama
+  const sorted = [...hasil].sort((a,b)=>(a.kelas||'').localeCompare(b.kelas||'')||(a.name||'').localeCompare(b.name||''));
+
+  function getPred(s){ const n=parseFloat(s); return n>=90?'A':n>=75?'B':n>=60?'C':'D'; }
+
+  const rows = sorted.map((r,i)=>`<tr>
+    <td style="color:var(--muted)">${i+1}</td>
+    <td style="font-weight:600">${r.name||'-'}</td>
+    <td><span style="background:var(--bg);border-radius:4px;padding:.1rem .4rem;font-size:.72rem;font-weight:700">${r.kelas||'-'}</span></td>
+    <td style="color:var(--success);font-weight:600">${r.benar||0}</td>
+    <td style="color:var(--danger);font-weight:600">${r.salah||0}</td>
+    <td><span class="nilai-badge ${getPred(r.score)}">${r.score}</span></td>
+    <td style="color:var(--muted);font-size:.72rem">${r.submitTime||'-'}</td>
+  </tr>`).join('');
+
+  el.innerHTML = `
+    <div class="dash-stats-row">
+      <div class="dash-stat"><div class="ds-val">${total}</div><div class="ds-key">Total Peserta</div></div>
+      <div class="dash-stat"><div class="ds-val">${rataRata}</div><div class="ds-key">Rata-rata Nilai</div></div>
+      <div class="dash-stat"><div class="ds-val">${lulus}</div><div class="ds-key">Lulus (≥75)</div></div>
+    </div>
+    <div class="kelas-progress">
+      <div class="kelas-prog-row">
+        <span class="kelas-prog-label">5-A</span>
+        <div class="kelas-prog-bar"><div class="kelas-prog-fill" style="width:${pctA}%"></div></div>
+        <span class="kelas-prog-pct">${kelas5A.length}/${totalA} (${pctA}%)</span>
+      </div>
+      <div class="kelas-prog-row">
+        <span class="kelas-prog-label">5-B</span>
+        <div class="kelas-prog-bar"><div class="kelas-prog-fill" style="width:${pctB}%"></div></div>
+        <span class="kelas-prog-pct">${kelas5B.length}/${totalB} (${pctB}%)</span>
+      </div>
+    </div>
+    <div class="hasil-table-wrap">
+      <table class="hasil-table">
+        <thead><tr>
+          <th>#</th><th>Nama</th><th>Kelas</th><th>✅ Benar</th><th>❌ Salah</th><th>Nilai</th><th>Waktu</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+function showScreen(id){
+  if(id==='screen-admin' && !adminLoggedIn){ openAdminOverlay(); return; }
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
 </script>
 </body>
 </html>
