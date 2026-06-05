@@ -20,7 +20,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
 .screen.active{display:flex;flex-direction:column;}
 
 /* ===== LOGIN ===== */
-#screen-login{background:linear-gradient(160deg,#1A3A5C 0%,#2E6DA4 60%,#1A3A5C 100%);align-items:center;justify-content:center;padding:2rem 1.5rem;}
+#screen-login{background:linear-gradient(160deg,#1A3A5C 0%,#2E6DA4 60%,#1A3A5C 100%);align-items:center;justify-content:center;}
 .login-box{background:rgba(255,255,255,.97);border-radius:20px;padding:2rem 1.5rem;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.25);}
 .login-logo{text-align:center;margin-bottom:1.5rem;}
 .school-badge{width:72px;height:72px;background:var(--primary);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:.75rem;}
@@ -344,7 +344,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
 
 <!-- SCREEN LOGIN -->
 <div class="screen" id="screen-login">
-  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:2rem 1.5rem;background:linear-gradient(160deg,#1A3A5C 0%,#2E6DA4 60%,#1A3A5C 100%);">
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:2rem 1.5rem;">
     <div class="login-box">
       <div class="login-logo">
         <div class="school-badge">
@@ -456,7 +456,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
 <!-- SCREEN ADMIN -->
 <div class="screen" id="screen-admin">
   <div class="admin-topbar">
-    <button onclick="showScreen('screen-login')" style="background:rgba(255,255,255,.2);border-radius:8px;padding:.4rem .7rem;color:white;font-size:.82rem;">← Keluar</button>
+    <button onclick="stopDashboardAutoRefresh();adminLoggedIn=false;showScreen('screen-login')" style="background:rgba(255,255,255,.2);border-radius:8px;padding:.4rem .7rem;color:white;font-size:.82rem;">← Keluar</button>
     <h2>Panel Admin</h2>
     <span class="admin-badge">ADMIN</span>
   </div>
@@ -466,7 +466,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
     <div class="admin-card">
       <h3>🔗 Koneksi Google Sheets</h3>
       <input class="sheets-url-input" id="sheets-script-url" placeholder="Paste URL Apps Script di sini..." type="url">
-      <input class="sheets-url-input" id="sheets-direct-url" placeholder="URL Google Sheets (untuk tombol Buka Sheets) — opsional" type="url" style="margin-top:.4rem;">
+
       <button class="btn-connect" id="btn-connect" onclick="connectSheets()">Hubungkan ke Google Sheets</button>
       <div class="connect-status" id="connect-status" style="display:none"></div>
       <div class="sheets-info-box" style="margin-top:.75rem;">
@@ -478,8 +478,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
         5. Copy URL deployment → paste di kotak atas → Hubungkan<br>
         <br>
         <button onclick="downloadAppsScript()" style="background:var(--primary);color:white;border-radius:6px;padding:.4rem .8rem;font-size:.78rem;font-weight:700;cursor:pointer;border:none;">📥 Unduh Kode Apps Script</button>
-        &nbsp;
-        <button onclick="downloadTemplateSheets()" style="background:var(--success);color:white;border-radius:6px;padding:.4rem .8rem;font-size:.78rem;font-weight:700;cursor:pointer;border:none;">📊 Unduh Template Sheets</button>
+
       </div>
     </div>
 
@@ -488,7 +487,8 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
       <h3>⚙️ Pengaturan Ujian</h3>
       <div class="cfg-row"><label>Nama Ujian</label><input id="cfg-nama" value="Ujian PAI"></div>
       <div class="cfg-row"><label>Durasi (menit)</label><input id="cfg-waktu" type="number" value="60" style="width:70px;"></div>
-      <div class="cfg-row"><label>Acak Soal</label><select id="cfg-acak"><option value="1">Ya</option><option value="0">Tidak</option></select></div>
+      <div class="cfg-row"><label>Acak Urutan Soal</label><select id="cfg-acak"><option value="1">Ya</option><option value="0">Tidak</option></select></div>
+      <div class="cfg-row"><label>Acak Jawaban PG</label><select id="cfg-acak-jwb"><option value="1">Ya</option><option value="0">Tidak</option></select></div>
       <div class="cfg-row"><label>Password Ujian</label><input id="cfg-password" placeholder="Kosongkan = bebas"></div>
       <button class="btn-adm green" style="margin-top:.75rem;" onclick="saveSettings()">💾 Simpan Pengaturan</button>
     </div>
@@ -667,6 +667,7 @@ function doAdminLogin() {
     closeAdminOverlay();
     loadAdminPanel();
     showScreen('screen-admin');
+    startDashboardAutoRefresh();
   } else {
     document.getElementById('admin-err').style.display='block';
     document.getElementById('admin-pwd').value='';
@@ -681,6 +682,7 @@ async function loadAdminPanel() {
   document.getElementById('cfg-nama').value = CFG.namaUjian;
   document.getElementById('cfg-waktu').value = CFG.waktuMenit;
   document.getElementById('cfg-acak').value = CFG.acakSoal ? '1' : '0';
+  document.getElementById('cfg-acak-jwb').value = CFG.acakJawaban ? '1' : '0';
   document.getElementById('cfg-password').value = CFG.password || '';
   document.getElementById('sheets-script-url').value = CFG.sheetsUrl || '';
   document.getElementById('sheets-direct-url').value = CFG.sheetsDirectUrl || '';
@@ -707,6 +709,7 @@ function saveSettings() {
   CFG.namaUjian = document.getElementById('cfg-nama').value || 'Ujian PAI';
   CFG.waktuMenit = parseInt(document.getElementById('cfg-waktu').value)||60;
   CFG.acakSoal = document.getElementById('cfg-acak').value==='1';
+  CFG.acakJawaban = document.getElementById('cfg-acak-jwb').value==='1';
   CFG.password = document.getElementById('cfg-password').value;
   CFG.sheetsDirectUrl = document.getElementById('sheets-direct-url').value;
   localStorage.setItem('siujian_cfg', JSON.stringify(CFG));
@@ -949,11 +952,17 @@ function saveSoal(soalArr) {
 function saveHasil(data) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName(SHEET_NAME_HASIL);
+  // Build per-soal headers dynamically
+  const analisis = data.analisis || [];
+  const soalHeaders = analisis.map((_,i) => ['Soal '+(i+1)+' Jawaban','Soal '+(i+1)+' Kunci','Soal '+(i+1)+' Hasil']).flat();
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME_HASIL);
-    sheet.appendRow(['Nama','Kelas','Ujian','Nilai','Benar','Salah','Total','Durasi','Waktu']);
+    sheet.appendRow(['Nama','Kelas','Ujian','Nilai','Benar','Salah','Total','Durasi','Waktu',...soalHeaders]);
+  } else if (sheet.getLastRow() === 0) {
+    sheet.appendRow(['Nama','Kelas','Ujian','Nilai','Benar','Salah','Total','Durasi','Waktu',...soalHeaders]);
   }
-  sheet.appendRow([data.name||'',data.kelas||'',data.ujian||'',data.score||0,data.benar||0,data.salah||0,data.totalQ||0,data.durasi||'',data.submitTime||'']);
+  const soalData = analisis.map(a => [a.jawaban||'', a.kunci||'', a.benar?'BENAR':'SALAH']).flat();
+  sheet.appendRow([data.name||'',data.kelas||'',data.ujian||'',data.score||0,data.benar||0,data.salah||0,data.totalQ||0,data.durasi||'',data.submitTime||'',...soalData]);
   return ContentService.createTextOutput(JSON.stringify({status:'ok'})).setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -966,11 +975,22 @@ function getHasil() {
   let sheet = ss.getSheetByName(SHEET_NAME_HASIL);
   if (!sheet || sheet.getLastRow() <= 1) return ContentService.createTextOutput(JSON.stringify({hasil:[]})).setMimeType(ContentService.MimeType.JSON);
   const data = sheet.getDataRange().getValues();
-  const headers = data[0];
+  const headers = data[0].map(h=>String(h).toLowerCase().trim());
   const hasil = data.slice(1).filter(r=>r[0]).map(r => {
     const obj = {};
-    headers.forEach((h,i) => obj[String(h).toLowerCase()] = r[i] !== undefined ? String(r[i]) : '');
-    return obj;
+    headers.forEach((h,i) => { obj[h] = r[i] !== undefined ? String(r[i]) : ''; });
+    // Normalize key fields
+    return {
+      name: obj['nama']||obj['name']||'',
+      kelas: obj['kelas']||'',
+      ujian: obj['ujian']||'',
+      score: parseFloat(obj['nilai']||obj['score'])||0,
+      benar: parseInt(obj['benar'])||0,
+      salah: parseInt(obj['salah'])||0,
+      totalQ: parseInt(obj['total']||obj['totalq'])||0,
+      durasi: obj['durasi']||'',
+      submitTime: obj['waktu']||obj['submittime']||''
+    };
   });
   return ContentService.createTextOutput(JSON.stringify({hasil})).setMimeType(ContentService.MimeType.JSON);
 }`;
@@ -978,17 +998,7 @@ function getHasil() {
   const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='siujian-apps-script.gs'; a.click();
 }
 
-function downloadTemplateSheets() {
-  const csv = `tipe,soal,opsiA,opsiB,opsiC,opsiD,jawaban,poin,gambarSoal,gambarOpsiA,gambarOpsiB,gambarOpsiC,gambarOpsiD
-PG,Apa rukun iman yang pertama?,Iman kepada Allah,Iman kepada Malaikat,Iman kepada Kitab,Iman kepada Rasul,A,1,,,,
-PG,Nabi Muhammad SAW lahir di kota?,Madinah,Mekah,Jeddah,Taif,B,1,,,,
-PGK,Berikut yang termasuk rukun Islam adalah...,Syahadat,Shalat,Zakat,Haji,A,C,1,,,,
-JODOH,Jodohkan nama nabi dengan mukjizatnya!,Nabi Musa\nNabi Isa\nNabi Ibrahim,,,,A-Tongkat membelah laut,B-Menghidupkan orang mati,C-Tidak terbakar api,1,,,,
-BS,Shalat Jumat hukumnya wajib bagi laki-laki Muslim,,,,,,BENAR,1,,,,
-ISIAN,Nabi Muhammad SAW adalah nabi dan rasul yang ke-...,,,,,,25,1,,,,`;
-  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
-  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='template-soal.csv'; a.click();
-}
+
 
 function exportCSV() {
   const results = JSON.parse(localStorage.getItem('siujian_results')||'[]');
@@ -1079,14 +1089,23 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function optImg(src){return src?`<img class="opt-img" src="${src}" alt="">`:''}
 
 function renderPG(q,idx){
-  const opts=[{l:'A',t:q.opsiA,i:q.gambarOpsiA},{l:'B',t:q.opsiB,i:q.gambarOpsiB},{l:'C',t:q.opsiC,i:q.gambarOpsiC},{l:'D',t:q.opsiD,i:q.gambarOpsiD}].filter(o=>o.t||o.i);
+  let opts=[{l:'A',t:q.opsiA,i:q.gambarOpsiA},{l:'B',t:q.opsiB,i:q.gambarOpsiB},{l:'C',t:q.opsiC,i:q.gambarOpsiC},{l:'D',t:q.opsiD,i:q.gambarOpsiD}].filter(o=>o.t||o.i);
+  // Use stored order or shuffle once per question
+  if(CFG.acakJawaban){
+    if(!q._opsiOrder) q._opsiOrder=shuffle([...opts.map(o=>o.l)]);
+    opts=q._opsiOrder.map(l=>opts.find(o=>o.l===l)).filter(Boolean);
+  }
   const cur=JAWABAN[idx]||'';
   return `<ul class="options-list">${opts.map(o=>`<li class="opt-item ${cur===o.l?'selected':''}" onclick="selPG(${idx},'${o.l}',this)"><div class="opt-letter">${o.l}</div><div class="opt-text">${esc(o.t)}${optImg(o.i)}</div></li>`).join('')}</ul>`;
 }
 function selPG(idx,l,el){JAWABAN[idx]=l;el.closest('.options-list').querySelectorAll('.opt-item').forEach(li=>li.classList.remove('selected'));el.classList.add('selected');syncDots();}
 
 function renderPGK(q,idx){
-  const opts=[{t:q.opsiA,i:q.gambarOpsiA,k:'A'},{t:q.opsiB,i:q.gambarOpsiB,k:'B'},{t:q.opsiC,i:q.gambarOpsiC,k:'C'},{t:q.opsiD,i:q.gambarOpsiD,k:'D'}].filter(o=>o.t||o.i);
+  let opts=[{t:q.opsiA,i:q.gambarOpsiA,k:'A'},{t:q.opsiB,i:q.gambarOpsiB,k:'B'},{t:q.opsiC,i:q.gambarOpsiC,k:'C'},{t:q.opsiD,i:q.gambarOpsiD,k:'D'}].filter(o=>o.t||o.i);
+  if(CFG.acakJawaban){
+    if(!q._opsiOrder) q._opsiOrder=shuffle([...opts.map(o=>o.k)]);
+    opts=q._opsiOrder.map(k=>opts.find(o=>o.k===k)).filter(Boolean);
+  }
   const cur=JAWABAN[idx]||[];
   return `<div class="pgk-hint">☑️ Pilih semua jawaban yang benar</div>${opts.map(o=>`<div class="pgk-item ${cur.includes(o.k)?'checked':''}" onclick="selPGK(${idx},'${o.k}',this)"><div class="pgk-checkbox">${cur.includes(o.k)?'✓':''}</div><div class="opt-text">${esc(o.t)}${optImg(o.i)}</div></div>`).join('')}`;
 }
@@ -1262,8 +1281,17 @@ function renderAnalisis(){
 async function sendHasil(data){
   const el=document.getElementById('saving-note');
   el.textContent='⏳ Menyimpan nilai ke Google Sheets...';
+  // Build analisis array for per-soal columns
+  const analisis = SOAL_ACTIVE.map((q,i)=>{
+    const j=JAWABAN[i]; let jawStr='', kunStr='', benar=false;
+    if(q.tipe==='PG'||q.tipe==='BS'){jawStr=j?String(j).toUpperCase():'';kunStr=String(q.jawaban).toUpperCase();benar=jawStr===kunStr;}
+    else if(q.tipe==='PGK'){const arr=Array.isArray(j)?j:[];jawStr=arr.sort().join(',');kunStr=String(q.jawaban).split(',').map(x=>x.trim().toUpperCase()).sort().join(',');benar=jawStr===kunStr;}
+    else if(q.tipe==='JODOH'){const km={};String(q.jawaban).split(',').forEach(p=>{const d=p.indexOf('-');if(d>-1)km[p.substring(0,d).trim()]=p.substring(d+1).trim();});kunStr=Object.entries(km).map(([k,v])=>k+'→'+v).join(', ');if(j&&typeof j==='object'){jawStr=Object.entries(j).map(([k,v])=>k+'→'+v).join(', ');benar=Object.entries(km).every(([k,v])=>j[k]===v);}else jawStr='';}
+    else if(q.tipe==='ISIAN'){jawStr=j?String(j).trim():'';kunStr=String(q.jawaban).trim();benar=jawStr.toLowerCase()===kunStr.toLowerCase();}
+    return {soal:q.soal.substring(0,50), jawaban:jawStr, kunci:kunStr, benar};
+  });
   try{
-    await fetch(CFG.sheetsUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({...data,action:'saveHasil'})});
+    await fetch(CFG.sheetsUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({...data,action:'saveHasil',analisis})});
     el.textContent='✅ Nilai berhasil tersimpan di Google Sheets!';
   }catch(e){el.textContent='⚠️ Gagal kirim ke Sheets, tapi nilai sudah tersimpan lokal.';}
 }
@@ -1288,90 +1316,111 @@ function resetLogin(){
 // SHEETS LINK
 // =========================================================
 function openSheets(){
-  // Open Google Sheets - user needs to navigate to their sheet
-  // We store the sheets URL separately if set
-  if(CFG.sheetsDirectUrl){
-    window.open(CFG.sheetsDirectUrl, '_blank');
-  } else {
-    window.open('https://docs.google.com/spreadsheets/', '_blank');
-  }
+  window.open('https://docs.google.com/spreadsheets/d/1LuKQtLqe57obKXjqfTARZAlDFE69EKii3tSrJo9MqC4/edit', '_blank');
 }
 
 // =========================================================
 // DASHBOARD HASIL
 // =========================================================
+let dashboardInterval = null;
+
 async function loadHasilDashboard(){
   const el = document.getElementById('dashboard-content');
-  el.innerHTML = '<div class="empty-hasil">⏳ Memuat data hasil...</div>';
+  if(!el) return;
+  el.innerHTML = '<div class="empty-hasil">⏳ Memuat dari Google Sheets...</div>';
   let hasil = [];
-  // Try fetch from Sheets first
+
   if(CFG.sheetsUrl){
     try{
-      const res = await fetch(CFG.sheetsUrl+'?action=getHasil',{method:'GET',mode:'cors'});
+      const res = await fetch(CFG.sheetsUrl+'?action=getHasil&t='+Date.now(),{method:'GET',mode:'cors'});
       const data = await res.json();
-      if(data.hasil && Array.isArray(data.hasil)) hasil = data.hasil;
+      if(data.hasil && Array.isArray(data.hasil) && data.hasil.length) {
+        hasil = data.hasil;
+        // Normalize field names (sheets returns lowercase)
+        hasil = hasil.map(r=>({
+          name: r.nama||r.name||'',
+          kelas: r.kelas||'',
+          ujian: r.ujian||'',
+          score: parseFloat(r.nilai||r.score)||0,
+          benar: parseInt(r.benar)||0,
+          salah: parseInt(r.salah)||0,
+          totalQ: parseInt(r.total||r.totalq)||0,
+          durasi: r.durasi||'',
+          submitTime: r.waktu||r.submittime||''
+        }));
+      }
     }catch(e){}
   }
-  // Fallback to localStorage
-  if(!hasil.length){
-    hasil = JSON.parse(localStorage.getItem('siujian_results')||'[]');
-  }
+  // Merge with localStorage (in case offline submissions)
+  const local = JSON.parse(localStorage.getItem('siujian_results')||'[]');
+  if(hasil.length === 0 && local.length) hasil = local;
 
-  if(!hasil.length){ el.innerHTML='<div class="empty-hasil">📭 Belum ada hasil ujian.</div>'; return; }
+  if(!hasil.length){ el.innerHTML='<div class="empty-hasil">📭 Belum ada hasil ujian yang masuk.</div>'; return; }
 
-  // Stats
   const total = hasil.length;
-  const rataRata = Math.round(hasil.reduce((s,r)=>s+(parseFloat(r.score)||0),0)/total);
-  const lulus = hasil.filter(r=>parseFloat(r.score)>=75).length;
+  const rataRata = Math.round(hasil.reduce((s,r)=>s+(r.score||0),0)/total);
+  const lulus = hasil.filter(r=>r.score>=75).length;
 
-  // Per kelas
-  const kelas5A = hasil.filter(r=>r.kelas==='5-A');
-  const kelas5B = hasil.filter(r=>r.kelas==='5-B');
-  const totalA = SISWA_5A.length, totalB = SISWA_5B.length;
-  const pctA = totalA ? Math.round(kelas5A.length/totalA*100) : 0;
-  const pctB = totalB ? Math.round(kelas5B.length/totalB*100) : 0;
+  // Per kelas - count unique names to avoid duplicates
+  const latestPerSiswa = {};
+  hasil.forEach(r=>{ const key=r.name+'|'+r.kelas; if(!latestPerSiswa[key]||r.submitTime>latestPerSiswa[key].submitTime) latestPerSiswa[key]=r; });
+  const unik = Object.values(latestPerSiswa);
+  const kelas5A = unik.filter(r=>r.kelas==='5-A');
+  const kelas5B = unik.filter(r=>r.kelas==='5-B');
+  const pctA = SISWA_5A.length ? Math.round(kelas5A.length/SISWA_5A.length*100) : 0;
+  const pctB = SISWA_5B.length ? Math.round(kelas5B.length/SISWA_5B.length*100) : 0;
 
-  // Build table rows - sort by kelas then nama
+  function getPred(s){ return s>=90?'A':s>=75?'B':s>=60?'C':'D'; }
+
   const sorted = [...hasil].sort((a,b)=>(a.kelas||'').localeCompare(b.kelas||'')||(a.name||'').localeCompare(b.name||''));
 
-  function getPred(s){ const n=parseFloat(s); return n>=90?'A':n>=75?'B':n>=60?'C':'D'; }
-
   const rows = sorted.map((r,i)=>`<tr>
-    <td style="color:var(--muted)">${i+1}</td>
-    <td style="font-weight:600">${r.name||'-'}</td>
-    <td><span style="background:var(--bg);border-radius:4px;padding:.1rem .4rem;font-size:.72rem;font-weight:700">${r.kelas||'-'}</span></td>
-    <td style="color:var(--success);font-weight:600">${r.benar||0}</td>
-    <td style="color:var(--danger);font-weight:600">${r.salah||0}</td>
-    <td><span class="nilai-badge ${getPred(r.score)}">${r.score}</span></td>
-    <td style="color:var(--muted);font-size:.72rem">${r.submitTime||'-'}</td>
+    <td style="color:var(--muted);text-align:center">${i+1}</td>
+    <td style="font-weight:600;white-space:normal">${r.name||'-'}</td>
+    <td style="text-align:center"><span style="background:var(--primary);color:white;border-radius:4px;padding:.1rem .4rem;font-size:.7rem;font-weight:700">${r.kelas||'-'}</span></td>
+    <td style="color:var(--success);font-weight:700;text-align:center">${r.benar||0}</td>
+    <td style="color:var(--danger);font-weight:700;text-align:center">${r.salah||0}</td>
+    <td style="text-align:center"><span class="nilai-badge ${getPred(r.score)}">${r.score}</span></td>
+    <td style="color:var(--muted);font-size:.7rem">${r.submitTime||'-'}</td>
   </tr>`).join('');
 
+  const lastUpdate = new Date().toLocaleTimeString('id-ID');
   el.innerHTML = `
+    <div style="font-size:.7rem;color:var(--muted);text-align:right;margin-bottom:.4rem">🔄 Update: ${lastUpdate}</div>
     <div class="dash-stats-row">
       <div class="dash-stat"><div class="ds-val">${total}</div><div class="ds-key">Total Peserta</div></div>
-      <div class="dash-stat"><div class="ds-val">${rataRata}</div><div class="ds-key">Rata-rata Nilai</div></div>
-      <div class="dash-stat"><div class="ds-val">${lulus}</div><div class="ds-key">Lulus (≥75)</div></div>
+      <div class="dash-stat"><div class="ds-val">${rataRata}</div><div class="ds-key">Rata-rata</div></div>
+      <div class="dash-stat"><div class="ds-val">${lulus}</div><div class="ds-key">Lulus ≥75</div></div>
     </div>
     <div class="kelas-progress">
       <div class="kelas-prog-row">
         <span class="kelas-prog-label">5-A</span>
         <div class="kelas-prog-bar"><div class="kelas-prog-fill" style="width:${pctA}%"></div></div>
-        <span class="kelas-prog-pct">${kelas5A.length}/${totalA} (${pctA}%)</span>
+        <span class="kelas-prog-pct">${kelas5A.length}/${SISWA_5A.length} (${pctA}%)</span>
       </div>
       <div class="kelas-prog-row">
         <span class="kelas-prog-label">5-B</span>
         <div class="kelas-prog-bar"><div class="kelas-prog-fill" style="width:${pctB}%"></div></div>
-        <span class="kelas-prog-pct">${kelas5B.length}/${totalB} (${pctB}%)</span>
+        <span class="kelas-prog-pct">${kelas5B.length}/${SISWA_5B.length} (${pctB}%)</span>
       </div>
     </div>
     <div class="hasil-table-wrap">
       <table class="hasil-table">
-        <thead><tr>
-          <th>#</th><th>Nama</th><th>Kelas</th><th>✅ Benar</th><th>❌ Salah</th><th>Nilai</th><th>Waktu</th>
-        </tr></thead>
+        <thead><tr><th>#</th><th>Nama</th><th>Kelas</th><th>✅</th><th>❌</th><th>Nilai</th><th>Waktu</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
+}
+
+function startDashboardAutoRefresh(){
+  if(dashboardInterval) clearInterval(dashboardInterval);
+  dashboardInterval = setInterval(()=>{
+    if(document.getElementById('screen-admin')?.classList.contains('active')) loadHasilDashboard();
+  }, 30000); // refresh every 30 seconds
+}
+
+function stopDashboardAutoRefresh(){
+  if(dashboardInterval){ clearInterval(dashboardInterval); dashboardInterval=null; }
 }
 function showScreen(id){
   if(id==='screen-admin' && !adminLoggedIn){ openAdminOverlay(); return; }
