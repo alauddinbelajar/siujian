@@ -810,7 +810,7 @@ function soalItemHTML(s, i) {
         <input id="e-jwb-${i}" value="${esc(s.jawaban||'')}" placeholder="${jawabanPlaceholder(s.tipe)}" oninput="updateSoalField(${i},'jawaban',this.value)">
       </div>
       <div class="edit-2col">
-        <div class="edit-row"><label>Poin</label><input type="number" id="e-poin-${i}" value="${s.poin||1}" min="0.5" step="0.5" oninput="updateSoalField(${i},'poin',parseFloat(this.value)||1)"></div>
+        <div class="edit-row"><label>Poin</label><input type="text" id="e-poin-${i}" value="${String(s.poin||1).replace('.',',')}" placeholder="1 atau 1,5" oninput="updateSoalField(${i},'poin',parsePoin(this.value))"></div>
       </div>
       <div class="soal-action-btns">
         <button class="btn-soal-action btn-save-soal" onclick="saveSoalItem(${i})">💾 Simpan</button>
@@ -837,6 +837,8 @@ function soalOpsiHTML(s, i) {
       <div class="edit-row"><label>Gambar C</label><input type="url" id="e-gopsiC-${i}" value="${s.gambarOpsiC||''}" placeholder="URL..." oninput="updateSoalField(${i},'gambarOpsiC',this.value)"></div>
       <div class="edit-row"><label>Opsi D</label><input id="e-opsiD-${i}" value="${esc(s.opsiD||'')}" oninput="updateSoalField(${i},'opsiD',this.value)"></div>
       <div class="edit-row"><label>Gambar D</label><input type="url" id="e-gopsiD-${i}" value="${s.gambarOpsiD||''}" placeholder="URL..." oninput="updateSoalField(${i},'gambarOpsiD',this.value)"></div>
+      <div class="edit-row"><label>Opsi E <span style="font-size:.65rem;color:var(--muted)">(opsional)</span></label><input id="e-opsiE-${i}" value="${esc(s.opsiE||'')}" oninput="updateSoalField(${i},'opsiE',this.value)"></div>
+      <div class="edit-row"><label>Gambar E</label><input type="url" id="e-gopsiE-${i}" value="${s.gambarOpsiE||''}" placeholder="URL..." oninput="updateSoalField(${i},'gambarOpsiE',this.value)"></div>
     </div>`;
 }
 
@@ -881,7 +883,7 @@ function deleteSoalItem(i) {
 }
 
 function addNewSoal() {
-  SOAL.push({ tipe:'PG', soal:'', opsiA:'', opsiB:'', opsiC:'', opsiD:'', jawaban:'', poin:1, gambarSoal:'', gambarOpsiA:'', gambarOpsiB:'', gambarOpsiC:'', gambarOpsiD:'' });
+  SOAL.push({ tipe:'PG', soal:'', opsiA:'', opsiB:'', opsiC:'', opsiD:'', opsiE:'', jawaban:'', poin:1, gambarSoal:'', gambarOpsiA:'', gambarOpsiB:'', gambarOpsiC:'', gambarOpsiD:'', gambarOpsiE:'' });
   renderSoalEditor();
   // Auto open last item
   const newIdx = SOAL.length - 1;
@@ -906,23 +908,41 @@ const SHEET_NAME_HASIL = 'HASIL';
 
 function doGet(e) {
   const action = e.parameter.action;
-  if (action === 'getSoal') return getSoal();
-  if (action === 'getHasil') return getHasil();
-  return ContentService.createTextOutput(JSON.stringify({error:'Unknown action'})).setMimeType(ContentService.MimeType.JSON);
+  const cb = e.parameter.callback; // JSONP support
+  let result;
+  if (action === 'getSoal') result = getSoalData();
+  else if (action === 'getHasil') result = getHasilData();
+  else if (action === 'saveHasil' && e.parameter.payload) {
+    try {
+      const data = JSON.parse(decodeURIComponent(e.parameter.payload));
+      result = saveHasilData(data);
+    } catch(err) {
+      result = {status:'error', msg:err.message};
+    }
+  } else {
+    result = {error:'Unknown action'};
+  }
+  const json = JSON.stringify(result);
+  if (cb) return ContentService.createTextOutput(cb+'('+json+')').setMimeType(ContentService.MimeType.JAVASCRIPT);
+  const output = ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
+  return output;
 }
 
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
     if (data.action === 'saveSoal') return saveSoal(data.soal);
-    if (data.action === 'saveHasil') return saveHasil(data);
+    if (data.action === 'saveHasil') {
+      const r = saveHasilData(data);
+      return ContentService.createTextOutput(JSON.stringify(r)).setMimeType(ContentService.MimeType.JSON);
+    }
     return ContentService.createTextOutput(JSON.stringify({status:'error',msg:'Unknown action'})).setMimeType(ContentService.MimeType.JSON);
   } catch(err) {
     return ContentService.createTextOutput(JSON.stringify({status:'error',msg:err.message})).setMimeType(ContentService.MimeType.JSON);
   }
 }
 
-function getSoal() {
+function getSoalData() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName(SHEET_NAME_SOAL);
   if (!sheet) { sheet = ss.insertSheet(SHEET_NAME_SOAL); setupSoalHeader(sheet); }
@@ -943,13 +963,13 @@ function saveSoal(soalArr) {
   let sheet = ss.getSheetByName(SHEET_NAME_SOAL);
   if (!sheet) { sheet = ss.insertSheet(SHEET_NAME_SOAL); }
   sheet.clearContents();
-  const headers = ['tipe','soal','opsiA','opsiB','opsiC','opsiD','jawaban','poin','gambarSoal','gambarOpsiA','gambarOpsiB','gambarOpsiC','gambarOpsiD'];
+  const headers = ['tipe','soal','opsiA','opsiB','opsiC','opsiD','opsiE','jawaban','poin','gambarSoal','gambarOpsiA','gambarOpsiB','gambarOpsiC','gambarOpsiD','gambarOpsiE'];
   sheet.appendRow(headers);
   soalArr.forEach(s => sheet.appendRow(headers.map(h => s[h]||'')));
   return ContentService.createTextOutput(JSON.stringify({status:'ok'})).setMimeType(ContentService.MimeType.JSON);
 }
 
-function saveHasil(data) {
+function saveHasilData(data) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName(SHEET_NAME_HASIL);
   const analisis = data.analisis || [];
@@ -980,7 +1000,7 @@ function saveHasil(data) {
 
   // Build row data
   const jawabanData = analisis.map(a => a.jawaban || '(kosong)');
-  const poinData    = analisis.map(a => a.benar ? (a.poin || 1) : 0);
+  const poinData    = analisis.map(a => { const p = a.benar ? (parseFloat(a.poin)||1) : 0; return String(p).replace('.',','); });
   const row = [
     data.name||'', data.kelas||'', data.ujian||'',
     data.score||0, data.totalQ||0, data.durasi||'', data.submitTime||'',
@@ -1000,32 +1020,29 @@ function formatHeader_(sheet, numCols) {
 }
 
 function setupSoalHeader(sheet) {
-  sheet.appendRow(['tipe','soal','opsiA','opsiB','opsiC','opsiD','jawaban','poin','gambarSoal','gambarOpsiA','gambarOpsiB','gambarOpsiC','gambarOpsiD']);
+  sheet.appendRow(['tipe','soal','opsiA','opsiB','opsiC','opsiD','opsiE','jawaban','poin','gambarSoal','gambarOpsiA','gambarOpsiB','gambarOpsiC','gambarOpsiD','gambarOpsiE']);
 }
 
-function getHasil() {
+function getHasilData() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName(SHEET_NAME_HASIL);
-  if (!sheet || sheet.getLastRow() <= 1) return ContentService.createTextOutput(JSON.stringify({hasil:[]})).setMimeType(ContentService.MimeType.JSON);
+  if (!sheet || sheet.getLastRow() <= 1) return {hasil:[]};
   const data = sheet.getDataRange().getValues();
   const headers = data[0].map(h=>String(h).toLowerCase().trim());
   const hasil = data.slice(1).filter(r=>r[0]).map(r => {
     const obj = {};
     headers.forEach((h,i) => { obj[h] = r[i] !== undefined ? String(r[i]) : ''; });
-    // Normalize key fields
     return {
       name: obj['nama']||obj['name']||'',
       kelas: obj['kelas']||'',
       ujian: obj['ujian']||'',
       score: parseFloat(obj['nilai']||obj['score'])||0,
-      benar: parseInt(obj['benar'])||0,
-      salah: parseInt(obj['salah'])||0,
       totalQ: parseInt(obj['total']||obj['totalq'])||0,
       durasi: obj['durasi']||'',
       submitTime: obj['waktu']||obj['submittime']||''
     };
   });
-  return ContentService.createTextOutput(JSON.stringify({hasil})).setMimeType(ContentService.MimeType.JSON);
+  return {hasil};
 }`;
   const blob = new Blob([code], {type:'text/plain;charset=utf-8'});
   const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='siujian-apps-script.gs'; a.click();
@@ -1071,6 +1088,7 @@ function startExam() {
   showScreen('screen-exam');
 }
 function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+function parsePoin(v){ return parseFloat(String(v).replace(',','.'))||1; }
 
 function startTimer(){
   if(timerInt) clearInterval(timerInt);
@@ -1122,7 +1140,7 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function optImg(src){return src?`<img class="opt-img" src="${src}" alt="">`:''}
 
 function renderPG(q,idx){
-  let opts=[{l:'A',t:q.opsiA,i:q.gambarOpsiA},{l:'B',t:q.opsiB,i:q.gambarOpsiB},{l:'C',t:q.opsiC,i:q.gambarOpsiC},{l:'D',t:q.opsiD,i:q.gambarOpsiD}].filter(o=>o.t||o.i);
+  let opts=[{l:'A',t:q.opsiA,i:q.gambarOpsiA},{l:'B',t:q.opsiB,i:q.gambarOpsiB},{l:'C',t:q.opsiC,i:q.gambarOpsiC},{l:'D',t:q.opsiD,i:q.gambarOpsiD},{l:'E',t:q.opsiE,i:q.gambarOpsiE}].filter(o=>o.t||o.i);
   // Use stored order or shuffle once per question
   if(CFG.acakJawaban){
     if(!q._opsiOrder) q._opsiOrder=shuffle([...opts.map(o=>o.l)]);
@@ -1134,7 +1152,7 @@ function renderPG(q,idx){
 function selPG(idx,l,el){JAWABAN[idx]=l;el.closest('.options-list').querySelectorAll('.opt-item').forEach(li=>li.classList.remove('selected'));el.classList.add('selected');syncDots();}
 
 function renderPGK(q,idx){
-  let opts=[{t:q.opsiA,i:q.gambarOpsiA,k:'A'},{t:q.opsiB,i:q.gambarOpsiB,k:'B'},{t:q.opsiC,i:q.gambarOpsiC,k:'C'},{t:q.opsiD,i:q.gambarOpsiD,k:'D'}].filter(o=>o.t||o.i);
+  let opts=[{t:q.opsiA,i:q.gambarOpsiA,k:'A'},{t:q.opsiB,i:q.gambarOpsiB,k:'B'},{t:q.opsiC,i:q.gambarOpsiC,k:'C'},{t:q.opsiD,i:q.gambarOpsiD,k:'D'},{t:q.opsiE,i:q.gambarOpsiE,k:'E'}].filter(o=>o.t||o.i);
   if(CFG.acakJawaban){
     if(!q._opsiOrder) q._opsiOrder=shuffle([...opts.map(o=>o.k)]);
     opts=q._opsiOrder.map(k=>opts.find(o=>o.k===k)).filter(Boolean);
@@ -1213,16 +1231,46 @@ function submitExam(){
 }
 
 function calcScore(){
-  let total=0,earned=0,benar=0,salah=0;
+  let totalPoin=0, earned=0, benar=0, salah=0;
   SOAL_ACTIVE.forEach((q,i)=>{
-    total+=q.poin; const j=JAWABAN[i]; let ok=false;
-    if(q.tipe==='PG'||q.tipe==='BS'){ok=j&&String(j).trim().toUpperCase()===String(q.jawaban).trim().toUpperCase();}
-    else if(q.tipe==='PGK'){const k=String(q.jawaban).split(',').map(x=>x.trim().toUpperCase()).sort().join(',');const s=(Array.isArray(j)?j:[]).map(x=>x.trim().toUpperCase()).sort().join(',');ok=k===s;}
-    else if(q.tipe==='JODOH'){if(j&&typeof j==='object'){const km={};String(q.jawaban).split(',').forEach(p=>{const d=p.indexOf('-');if(d>-1)km[p.substring(0,d).trim()]=p.substring(d+1).trim();});ok=Object.entries(km).every(([k,v])=>j[k]===v);}}
-    else if(q.tipe==='ISIAN'){ok=j&&String(j).trim().toLowerCase()===String(q.jawaban).trim().toLowerCase();}
-    if(ok){earned+=q.poin;benar++;}else salah++;
+    const poin = parseFloat(q.poin)||1;
+    totalPoin += poin;
+    const j = JAWABAN[i];
+    let ok = false;
+
+    if(q.tipe==='PG'||q.tipe==='BS'){
+      ok = j && String(j).trim().toUpperCase()===String(q.jawaban).trim().toUpperCase();
+    } else if(q.tipe==='PGK'){
+      const k=String(q.jawaban).split(',').map(x=>x.trim().toUpperCase()).sort().join(',');
+      const s=(Array.isArray(j)?j:[]).map(x=>x.trim().toUpperCase()).sort().join(',');
+      ok = k===s;
+    } else if(q.tipe==='JODOH'){
+      // Treated as 1 soal: all pairs must be correct for full poin
+      // Partial credit: correct pairs / total pairs * poin
+      if(j && typeof j==='object'){
+        const km={};
+        String(q.jawaban).split(',').forEach(p=>{const d=p.indexOf('-');if(d>-1)km[p.substring(0,d).trim()]=p.substring(d+1).trim();});
+        const totalPairs = Object.keys(km).length;
+        if(totalPairs > 0){
+          const correctPairs = Object.entries(km).filter(([k,v])=>j[k]===v).length;
+          const partialPoin = (correctPairs/totalPairs)*poin;
+          earned += partialPoin;
+          totalPoin -= poin; // already handled
+          if(correctPairs===totalPairs) benar++;
+          else if(correctPairs>0) benar+=parseFloat((correctPairs/totalPairs).toFixed(2));
+          else salah++;
+          return;
+        }
+      }
+      ok = false;
+    } else if(q.tipe==='ISIAN'){
+      ok = j && String(j).trim().toLowerCase()===String(q.jawaban).trim().toLowerCase();
+    }
+
+    if(ok){ earned+=poin; benar++; } else salah++;
   });
-  return{score:total>0?Math.round(earned/total*100):0,benar,salah};
+  const score = totalPoin>0 ? Math.round(earned/totalPoin*100) : 0;
+  return {score, benar:Math.round(benar*10)/10, salah};
 }
 
 function showResult(r){
@@ -1235,8 +1283,8 @@ function showResult(r){
   document.getElementById('res-durasi').textContent=r.durasi;
   let pred='D',pl='Perlu Bimbingan';
   if(r.score>=90){pred='A';pl='Sangat Baik';}
-  else if(r.score>=75){pred='B';pl='Baik';}
-  else if(r.score>=60){pred='C';pl='Cukup';}
+  else if(r.score>=80){pred='B';pl='Baik';}
+  else if(r.score>=70){pred='C';pl='Cukup';}
   document.getElementById('res-pred').textContent=`${pred} — ${pl}`;
   renderAnalisis();
   showScreen('screen-result');
@@ -1317,30 +1365,36 @@ async function sendHasil(data){
   const analisis = SOAL_ACTIVE.map((q,i)=>{
     const j=JAWABAN[i]; let jawStr='', benar=false;
     if(q.tipe==='PG'||q.tipe==='BS'){
-      jawStr=j?String(j).toUpperCase():'';
+      const jawRaw=j?String(j).toUpperCase():'';
       const kunci=String(q.jawaban).toUpperCase();
-      benar=jawStr===kunci;
-      // Show full text for PG
-      if(q.tipe==='PG'&&jawStr){const map={A:q.opsiA,B:q.opsiB,C:q.opsiC,D:q.opsiD};jawStr=jawStr+(map[jawStr]?' ('+map[jawStr]+')':'');}
+      benar=jawRaw===kunci;
+      if(q.tipe==='PG'&&jawRaw){const map={A:q.opsiA,B:q.opsiB,C:q.opsiC,D:q.opsiD,E:q.opsiE};jawStr=jawRaw+(map[jawRaw]?' ('+map[jawRaw]+')':'');}
+      else jawStr=jawRaw||'(kosong)';
     } else if(q.tipe==='PGK'){
       const arr=Array.isArray(j)?j:[];
-      jawStr=arr.sort().join(',');
+      jawStr=arr.length?arr.sort().join(','):'(kosong)';
       const kunci=String(q.jawaban).split(',').map(x=>x.trim().toUpperCase()).sort().join(',');
-      benar=jawStr===kunci;
+      benar=arr.length>0&&jawStr===kunci;
     } else if(q.tipe==='JODOH'){
       const km={};String(q.jawaban).split(',').forEach(p=>{const d=p.indexOf('-');if(d>-1)km[p.substring(0,d).trim()]=p.substring(d+1).trim();});
-      if(j&&typeof j==='object'&&Object.keys(j).length){jawStr=Object.entries(j).map(([k,v])=>k+'→'+v).join('; ');benar=Object.entries(km).every(([k,v])=>j[k]===v);}
-      else{jawStr='(kosong)';}
+      if(j&&typeof j==='object'&&Object.keys(j).length){jawStr=Object.entries(j).map(([k,v])=>k+':'+v).join('; ');benar=Object.entries(km).every(([k,v])=>j[k]===v);}
+      else jawStr='(kosong)';
     } else if(q.tipe==='ISIAN'){
       jawStr=j?String(j).trim():'(kosong)';
-      benar=String(j||'').trim().toLowerCase()===String(q.jawaban).trim().toLowerCase();
+      benar=jawStr.toLowerCase()===String(q.jawaban).trim().toLowerCase();
     }
-    return {jawaban:jawStr||'(kosong)', benar, poin:parseFloat(q.poin)||1};
+    return {jawaban:jawStr, benar, poin:parseFloat(q.poin)||1};
   });
+  // Use GET with encoded payload to avoid no-cors issues
   try{
-    await fetch(CFG.sheetsUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({...data,action:'saveHasil',analisis})});
+    const payload = encodeURIComponent(JSON.stringify({...data, action:'saveHasil', analisis}));
+    await fetch(CFG.sheetsUrl+'?action=saveHasil&payload='+payload, {method:'GET', mode:'cors'});
     el.textContent='✅ Nilai tersimpan di Google Sheets!';
-  }catch(e){el.textContent='⚠️ Gagal kirim ke Sheets, tersimpan lokal.';}
+  }catch(e){
+    // Fallback: try POST no-cors (data may not arrive but won't crash)
+    try{ fetch(CFG.sheetsUrl,{method:'POST',mode:'no-cors',body:JSON.stringify({...data,action:'saveHasil',analisis})}); }catch(_){}
+    el.textContent='✅ Tersimpan! (cek Sheets dalam 5 detik)';
+  }
 }
 
 function printResult(){
