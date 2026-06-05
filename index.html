@@ -351,7 +351,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
           <svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>
         </div>
         <h1>SIUJIAN</h1>
-        <p>SDN Petukangan Utara 01</p>
+        <p>SDN Petukangan Utara 01 · Jakarta Selatan</p>
       </div>
 
       <div class="form-group" id="name-group">
@@ -822,7 +822,7 @@ function soalItemHTML(s, i) {
 
 function soalOpsiHTML(s, i) {
   if(s.tipe==='BS') return `<div class="edit-row"><label>Opsi (otomatis: BENAR / SALAH)</label><input disabled value="BENAR / SALAH" style="background:#f5f5f5;color:var(--muted)"></div>`;
-  if(s.tipe==='ISIAN') return `<div class="edit-row"><label>Kunci jawaban isian (isi di kolom Jawaban Benar)</label></div>`;
+  if(s.tipe==='ISIAN') return `<div class="edit-row" style="background:#E8F8F5;border-radius:8px;padding:.5rem .75rem;"><label style="color:var(--isian)">💡 Tips Isian</label><p style="font-size:.78rem;color:#16A085;margin-top:.25rem;line-height:1.5">Pisah alternatif jawaban dengan <strong>|</strong><br>Contoh: <strong>kambing|domba|kibas</strong><br>Huruf besar/kecil otomatis diterima semua.</p></div>`;
   if(s.tipe==='JODOH') return `
     <div class="edit-row"><label>Pasangan Soal (Kiri)</label><textarea id="e-opsiA-${i}" placeholder="Satu per baris: A=teks kiri" oninput="updateSoalField(${i},'opsiA',this.value)">${esc(s.opsiA||'')}</textarea></div>
     <div class="edit-row"><label>URL Gambar Kiri (opsional, pisah koma)</label><input type="text" id="e-gopsiA-${i}" placeholder="url1,url2,..." value="${s.gambarOpsiA||''}" oninput="updateSoalField(${i},'gambarOpsiA',this.value)"></div>
@@ -895,20 +895,11 @@ function addNewSoal() {
 // DOWNLOAD APPS SCRIPT
 // =========================================================
 function downloadAppsScript() {
-  const code = `// =============================================
-// SIUJIAN - Google Apps Script
-// Paste kode ini di Extensions > Apps Script
-// Lalu Deploy sebagai Web App:
-//   Execute as: Me
-//   Who has access: Anyone
-// =============================================
-
-const SHEET_NAME_SOAL = 'SOAL';
+  const code = `const SHEET_NAME_SOAL = 'SOAL';
 const SHEET_NAME_HASIL = 'HASIL';
 
 function doGet(e) {
   const action = e.parameter.action;
-  const cb = e.parameter.callback; // JSONP support
   let result;
   if (action === 'getSoal') result = getSoalData();
   else if (action === 'getHasil') result = getHasilData();
@@ -923,9 +914,7 @@ function doGet(e) {
     result = {error:'Unknown action'};
   }
   const json = JSON.stringify(result);
-  if (cb) return ContentService.createTextOutput(cb+'('+json+')').setMimeType(ContentService.MimeType.JAVASCRIPT);
-  const output = ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
-  return output;
+  return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
@@ -947,15 +936,15 @@ function getSoalData() {
   let sheet = ss.getSheetByName(SHEET_NAME_SOAL);
   if (!sheet) { sheet = ss.insertSheet(SHEET_NAME_SOAL); setupSoalHeader(sheet); }
   const data = sheet.getDataRange().getValues();
-  if (data.length <= 1) return ContentService.createTextOutput(JSON.stringify({soal:[]})).setMimeType(ContentService.MimeType.JSON);
+  if (data.length <= 1) return {soal:[]};
   const headers = data[0];
   const soal = data.slice(1).filter(r=>r[0]).map(r => {
     const obj = {};
     headers.forEach((h,i) => obj[h] = r[i] !== undefined ? String(r[i]) : '');
-    obj.poin = parseFloat(obj.poin) || 1;
+    obj.poin = parseFloat(String(obj.poin).replace(',','.')) || 1;
     return obj;
   });
-  return ContentService.createTextOutput(JSON.stringify({soal})).setMimeType(ContentService.MimeType.JSON);
+  return {soal};
 }
 
 function saveSoal(soalArr) {
@@ -966,16 +955,14 @@ function saveSoal(soalArr) {
   const headers = ['tipe','soal','opsiA','opsiB','opsiC','opsiD','opsiE','jawaban','poin','gambarSoal','gambarOpsiA','gambarOpsiB','gambarOpsiC','gambarOpsiD','gambarOpsiE'];
   sheet.appendRow(headers);
   soalArr.forEach(s => sheet.appendRow(headers.map(h => s[h]||'')));
-  return ContentService.createTextOutput(JSON.stringify({status:'ok'})).setMimeType(ContentService.MimeType.JSON);
+  return {status:'ok'};
 }
 
 function saveHasilData(data) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName(SHEET_NAME_HASIL);
   const analisis = data.analisis || [];
-  const n = analisis.length;
 
-  // Build headers: Nama,Kelas,Ujian,Nilai,Total,Durasi,Waktu, Jawaban1..N, Poin1..N
   const jawabanHeaders = analisis.map((_,i) => 'Jawaban'+(i+1));
   const poinHeaders    = analisis.map((_,i) => 'Poin'+(i+1));
   const baseHeaders    = ['Nama','Kelas','Ujian','Nilai','Total','Durasi','Waktu'];
@@ -989,33 +976,33 @@ function saveHasilData(data) {
     sheet.appendRow(allHeaders);
     formatHeader_(sheet, allHeaders.length);
   } else {
-    // Check if header needs updating (more soal than before)
-    const existingHeader = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
-    if (existingHeader.length < allHeaders.length) {
-      // Clear and rewrite header with new columns
+    const existingCols = sheet.getLastColumn();
+    if (existingCols < allHeaders.length) {
       sheet.getRange(1,1,1,allHeaders.length).setValues([allHeaders]);
       formatHeader_(sheet, allHeaders.length);
     }
   }
 
-  // Build row data
   const jawabanData = analisis.map(a => a.jawaban || '(kosong)');
-  const poinData    = analisis.map(a => { const p = a.benar ? (parseFloat(a.poin)||1) : 0; return String(p).replace('.',','); });
+  const poinData    = analisis.map(a => {
+    const p = a.benar ? (parseFloat(String(a.poin||1).replace(',','.')) || 1) : 0;
+    return String(p).replace('.',',');
+  });
+
   const row = [
     data.name||'', data.kelas||'', data.ujian||'',
     data.score||0, data.totalQ||0, data.durasi||'', data.submitTime||'',
     ...jawabanData, ...poinData
   ];
   sheet.appendRow(row);
-
-  return ContentService.createTextOutput(JSON.stringify({status:'ok'})).setMimeType(ContentService.MimeType.JSON);
+  return {status:'ok'};
 }
 
 function formatHeader_(sheet, numCols) {
-  const headerRange = sheet.getRange(1, 1, 1, numCols);
-  headerRange.setBackground('#1A3A5C');
-  headerRange.setFontColor('#FFFFFF');
-  headerRange.setFontWeight('bold');
+  const range = sheet.getRange(1,1,1,numCols);
+  range.setBackground('#1A3A5C');
+  range.setFontColor('#FFFFFF');
+  range.setFontWeight('bold');
   sheet.setFrozenRows(1);
 }
 
@@ -1033,10 +1020,10 @@ function getHasilData() {
     const obj = {};
     headers.forEach((h,i) => { obj[h] = r[i] !== undefined ? String(r[i]) : ''; });
     return {
-      name: obj['nama']||obj['name']||'',
+      name:  obj['nama']||obj['name']||'',
       kelas: obj['kelas']||'',
       ujian: obj['ujian']||'',
-      score: parseFloat(obj['nilai']||obj['score'])||0,
+      score: parseFloat(String(obj['nilai']||obj['score']||'0').replace(',','.'))||0,
       totalQ: parseInt(obj['total']||obj['totalq'])||0,
       durasi: obj['durasi']||'',
       submitTime: obj['waktu']||obj['submittime']||''
@@ -1045,9 +1032,11 @@ function getHasilData() {
   return {hasil};
 }`;
   const blob = new Blob([code], {type:'text/plain;charset=utf-8'});
-  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='siujian-apps-script.gs'; a.click();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'siujian-apps-script.gs';
+  a.click();
 }
-
 
 
 function exportCSV() {
@@ -1089,6 +1078,14 @@ function startExam() {
 }
 function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
 function parsePoin(v){ return parseFloat(String(v).replace(',','.'))||1; }
+function checkIsian(jawaban, kunci){
+  // Support multiple correct answers separated by |
+  // Case-insensitive, trim whitespace
+  const j = String(jawaban||'').trim().toLowerCase();
+  if(!j) return false;
+  const alternatives = String(kunci||'').split('|').map(k=>k.trim().toLowerCase()).filter(k=>k);
+  return alternatives.some(k=>j===k);
+}
 
 function startTimer(){
   if(timerInt) clearInterval(timerInt);
@@ -1264,7 +1261,9 @@ function calcScore(){
       }
       ok = false;
     } else if(q.tipe==='ISIAN'){
-      ok = j && String(j).trim().toLowerCase()===String(q.jawaban).trim().toLowerCase();
+      const siswaJwb = String(j||'').trim().toLowerCase();
+      const kunciList = String(q.jawaban).split('|').map(k=>k.trim().toLowerCase()).filter(k=>k);
+      ok = siswaJwb!=='' && kunciList.some(k=>k===siswaJwb);
     }
 
     if(ok){ earned+=poin; benar++; } else salah++;
@@ -1283,8 +1282,8 @@ function showResult(r){
   document.getElementById('res-durasi').textContent=r.durasi;
   let pred='D',pl='Perlu Bimbingan';
   if(r.score>=90){pred='A';pl='Sangat Baik';}
-  else if(r.score>=80){pred='B';pl='Baik';}
-  else if(r.score>=70){pred='C';pl='Cukup';}
+  else if(r.score>=75){pred='B';pl='Baik';}
+  else if(r.score>=60){pred='C';pl='Cukup';}
   document.getElementById('res-pred').textContent=`${pred} — ${pl}`;
   renderAnalisis();
   showScreen('screen-result');
@@ -1319,8 +1318,9 @@ function renderAnalisis(){
       }
     } else if(q.tipe==='ISIAN'){
       siswaAns = j ? String(j).trim() : '(tidak dijawab)';
-      kunciAns = String(q.jawaban).trim();
-      isBenar = siswaAns.toLowerCase() === kunciAns.toLowerCase();
+      const kunciList = String(q.jawaban).split('|').map(k=>k.trim()).filter(k=>k);
+      kunciAns = kunciList.join(' / ');
+      isBenar = siswaAns!=='(tidak dijawab)' && kunciList.some(k=>k.toLowerCase()===siswaAns.toLowerCase());
     }
 
     // Opsi label untuk PG
@@ -1381,7 +1381,8 @@ async function sendHasil(data){
       else jawStr='(kosong)';
     } else if(q.tipe==='ISIAN'){
       jawStr=j?String(j).trim():'(kosong)';
-      benar=jawStr.toLowerCase()===String(q.jawaban).trim().toLowerCase();
+      const kunciList=String(q.jawaban).split('|').map(k=>k.trim().toLowerCase()).filter(k=>k);
+      benar=jawStr!=='(kosong)'&&kunciList.some(k=>k===jawStr.toLowerCase());
     }
     return {jawaban:jawStr, benar, poin:parseFloat(q.poin)||1};
   });
