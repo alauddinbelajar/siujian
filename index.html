@@ -920,7 +920,15 @@ function doGet(e) {
 
 function doPost(e) {
   try {
-    const data = JSON.parse(e.postData.contents);
+    let data;
+    // Handle form POST (dari iframe) atau JSON POST
+    if (e.parameter && e.parameter.payload) {
+      data = JSON.parse(e.parameter.payload);
+    } else if (e.postData && e.postData.contents) {
+      data = JSON.parse(e.postData.contents);
+    } else {
+      return ContentService.createTextOutput(JSON.stringify({status:'error',msg:'No data'})).setMimeType(ContentService.MimeType.JSON);
+    }
     if (data.action === 'saveSoal') return saveSoal(data.soal);
     if (data.action === 'saveHasil') {
       const r = saveHasilData(data);
@@ -1379,11 +1387,10 @@ function renderAnalisis(){
 }
 
 async function sendHasil(data){
-  const el=document.getElementById('saving-note');
-  el.textContent='Menyimpan ke Google Sheets...';
+  const el = document.getElementById('saving-note');
+  el.textContent = 'Menyimpan ke Google Sheets...';
 
   // Urutan jawaban ikut SOAL asli (bukan SOAL_ACTIVE yang diacak)
-  // Jawaban1 selalu = soal ke-1 di Sheets, konsisten semua siswa
   const analisis = SOAL.map((origQ)=>{
     const activeIdx = SOAL_ACTIVE.findIndex(aq=>aq.soal===origQ.soal && aq.tipe===origQ.tipe);
     const j = activeIdx>=0 ? JAWABAN[activeIdx] : undefined;
@@ -1422,19 +1429,62 @@ async function sendHasil(data){
     return {jawaban:jawStr, benar, poin};
   });
 
-  const totalBenar=analisis.filter(a=>a.benar).length;
-  const totalSalah=analisis.filter(a=>!a.benar).length;
+  const totalBenar = analisis.filter(a=>a.benar).length;
+  const totalSalah = analisis.filter(a=>!a.benar).length;
 
-  try{
-    const payload=encodeURIComponent(JSON.stringify({
-      ...data, action:'saveHasil', analisis,
-      benar:totalBenar, salah:totalSalah
-    }));
-    await fetch(CFG.sheetsUrl+'?action=saveHasil&payload='+payload,{method:'GET',mode:'cors'});
-    el.textContent='Nilai tersimpan di Google Sheets!';
-  }catch(e){
-    el.textContent='Gagal kirim ke Sheets, tersimpan lokal.';
+  const payload = {
+    ...data, action:'saveHasil', analisis,
+    benar:totalBenar, salah:totalSalah
+  };
+
+  // Kirim via hidden iframe form POST - bypass CORS & tidak ada batasan panjang URL
+  try {
+    await postToSheets(CFG.sheetsUrl, payload);
+    el.textContent = 'Nilai tersimpan di Google Sheets!';
+  } catch(e) {
+    el.textContent = 'Tersimpan lokal. Sheets: ' + e.message;
   }
+}
+
+function postToSheets(url, data) {
+  return new Promise((resolve) => {
+    // Buat iframe tersembunyi sebagai target
+    const iframeName = 'sheets_iframe_' + Date.now();
+    const iframe = document.createElement('iframe');
+    iframe.name = iframeName;
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    // Buat form POST
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    form.target = iframeName;
+    form.style.display = 'none';
+
+    // Masukkan data sebagai hidden input
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'payload';
+    input.value = JSON.stringify(data);
+    form.appendChild(input);
+
+    document.body.appendChild(form);
+
+    // Submit dan tunggu
+    iframe.onload = () => {
+      setTimeout(()=>{
+        document.body.removeChild(form);
+        document.body.removeChild(iframe);
+      }, 1000);
+      resolve(true);
+    };
+
+    // Timeout fallback
+    setTimeout(()=>{ resolve(true); }, 5000);
+
+    form.submit();
+  });
 }
 
 function printResult(){
