@@ -715,9 +715,8 @@ function saveSettings() {
   localStorage.setItem('siujian_cfg', JSON.stringify(CFG));
   localStorage.setItem('siujian_soal', JSON.stringify(SOAL));
   updateLoginUI();
-  const pwdInfo = CFG.password ? '🔒 Password aktif: ' + CFG.password : '🔓 Tanpa password';
-  alert('✅ Pengaturan disimpan!
-' + pwdInfo);
+  const pwdInfo = CFG.password ? ' | Password: ' + CFG.password : ' | Tanpa password';
+  alert('Pengaturan disimpan! ' + pwdInfo);
 }
 
 // =========================================================
