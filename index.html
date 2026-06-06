@@ -966,7 +966,7 @@ function saveHasilData(data) {
 
   const jawabanHeaders = analisis.map((_,i) => 'Jawaban'+(i+1));
   const poinHeaders    = analisis.map((_,i) => 'Poin'+(i+1));
-  const baseHeaders    = ['Nama','Kelas','Ujian','Nilai','Total','Durasi','Waktu'];
+  const baseHeaders    = ['Nama','Kelas','Ujian','Nilai','Benar','Salah','Total','Durasi','Waktu'];
   const allHeaders     = [...baseHeaders, ...jawabanHeaders, ...poinHeaders];
 
   if (!sheet) {
@@ -992,7 +992,8 @@ function saveHasilData(data) {
 
   const row = [
     data.name||'', data.kelas||'', data.ujian||'',
-    data.score||0, data.totalQ||0, data.durasi||'', data.submitTime||'',
+    data.score||0, data.benar||0, data.salah||0,
+    data.totalQ||0, data.durasi||'', data.submitTime||'',
     ...jawabanData, ...poinData
   ];
   sheet.appendRow(row);
@@ -1231,46 +1232,63 @@ function submitExam(){
 function calcScore(){
   let totalPoin=0, earned=0, benar=0, salah=0;
   SOAL_ACTIVE.forEach((q,i)=>{
-    const poin = parseFloat(q.poin)||1;
+    const poin = parseFloat(String(q.poin||1).replace(',','.'))||1;
     totalPoin += poin;
     const j = JAWABAN[i];
+
+    // Check if answered at all
+    const isEmpty = (j===undefined||j===null||j===''||
+      (Array.isArray(j)&&j.length===0)||
+      (typeof j==='object'&&!Array.isArray(j)&&Object.keys(j).length===0));
+
+    if(isEmpty){ salah++; return; } // Not answered = salah, skip rest
+
     let ok = false;
 
     if(q.tipe==='PG'||q.tipe==='BS'){
-      ok = j && String(j).trim().toUpperCase()===String(q.jawaban).trim().toUpperCase();
+      ok = String(j).trim().toUpperCase()===String(q.jawaban).trim().toUpperCase();
+
     } else if(q.tipe==='PGK'){
-      const k=String(q.jawaban).split(',').map(x=>x.trim().toUpperCase()).sort().join(',');
-      const s=(Array.isArray(j)?j:[]).map(x=>x.trim().toUpperCase()).sort().join(',');
-      ok = k===s;
+      const kunci = String(q.jawaban).split(',').map(x=>x.trim().toUpperCase()).filter(x=>x).sort().join(',');
+      const siswa = (Array.isArray(j)?j:[]).map(x=>x.trim().toUpperCase()).filter(x=>x).sort().join(',');
+      ok = kunci!=='' && kunci===siswa;
+
     } else if(q.tipe==='JODOH'){
-      // Treated as 1 soal: all pairs must be correct for full poin
-      // Partial credit: correct pairs / total pairs * poin
-      if(j && typeof j==='object'){
-        const km={};
-        String(q.jawaban).split(',').forEach(p=>{const d=p.indexOf('-');if(d>-1)km[p.substring(0,d).trim()]=p.substring(d+1).trim();});
-        const totalPairs = Object.keys(km).length;
-        if(totalPairs > 0){
-          const correctPairs = Object.entries(km).filter(([k,v])=>j[k]===v).length;
-          const partialPoin = (correctPairs/totalPairs)*poin;
+      const km={};
+      String(q.jawaban).split(',').forEach(p=>{
+        const d=p.indexOf('-');
+        if(d>-1) km[p.substring(0,d).trim()]=p.substring(d+1).trim();
+      });
+      const totalPairs = Object.keys(km).length;
+      if(totalPairs > 0){
+        const correctPairs = Object.entries(km).filter(([k,v])=>j[k]===v).length;
+        if(correctPairs===totalPairs){
+          // All correct - full poin
+          earned += poin; benar++;
+        } else if(correctPairs > 0){
+          // Partial - proportional poin
+          const partialPoin = Math.round((correctPairs/totalPairs)*poin*10)/10;
           earned += partialPoin;
-          totalPoin -= poin; // already handled
-          if(correctPairs===totalPairs) benar++;
-          else if(correctPairs>0) benar+=parseFloat((correctPairs/totalPairs).toFixed(2));
-          else salah++;
-          return;
+          benar += Math.round((correctPairs/totalPairs)*10)/10;
+          salah += Math.round(((totalPairs-correctPairs)/totalPairs)*10)/10;
+        } else {
+          salah++;
         }
+      } else {
+        salah++;
       }
-      ok = false;
+      return; // already handled
+
     } else if(q.tipe==='ISIAN'){
-      const siswaJwb = String(j||'').trim().toLowerCase();
+      const siswaJwb = String(j).trim().toLowerCase();
       const kunciList = String(q.jawaban).split('|').map(k=>k.trim().toLowerCase()).filter(k=>k);
-      ok = siswaJwb!=='' && kunciList.some(k=>k===siswaJwb);
+      ok = kunciList.length>0 && kunciList.some(k=>k===siswaJwb);
     }
 
     if(ok){ earned+=poin; benar++; } else salah++;
   });
   const score = totalPoin>0 ? Math.round(earned/totalPoin*100) : 0;
-  return {score, benar:Math.round(benar*10)/10, salah};
+  return {score, benar:Math.round(benar*10)/10, salah:Math.round(salah*10)/10};
 }
 
 function showResult(r){
@@ -1362,40 +1380,60 @@ function renderAnalisis(){
 
 async function sendHasil(data){
   const el=document.getElementById('saving-note');
-  el.textContent='⏳ Menyimpan ke Google Sheets...';
-  const analisis = SOAL_ACTIVE.map((q,i)=>{
-    const j=JAWABAN[i]; let jawStr='', benar=false;
-    if(q.tipe==='PG'||q.tipe==='BS'){
-      const jawRaw=j?String(j).toUpperCase():'';
-      const kunci=String(q.jawaban).toUpperCase();
-      benar=jawRaw===kunci;
-      if(q.tipe==='PG'&&jawRaw){const map={A:q.opsiA,B:q.opsiB,C:q.opsiC,D:q.opsiD,E:q.opsiE};jawStr=jawRaw+(map[jawRaw]?' ('+map[jawRaw]+')':'');}
-      else jawStr=jawRaw||'(kosong)';
-    } else if(q.tipe==='PGK'){
-      const arr=Array.isArray(j)?j:[];
-      jawStr=arr.length?arr.sort().join(','):'(kosong)';
-      const kunci=String(q.jawaban).split(',').map(x=>x.trim().toUpperCase()).sort().join(',');
-      benar=arr.length>0&&jawStr===kunci;
-    } else if(q.tipe==='JODOH'){
-      const km={};String(q.jawaban).split(',').forEach(p=>{const d=p.indexOf('-');if(d>-1)km[p.substring(0,d).trim()]=p.substring(d+1).trim();});
-      if(j&&typeof j==='object'&&Object.keys(j).length){jawStr=Object.entries(j).map(([k,v])=>k+':'+v).join('; ');benar=Object.entries(km).every(([k,v])=>j[k]===v);}
-      else jawStr='(kosong)';
-    } else if(q.tipe==='ISIAN'){
-      jawStr=j?String(j).trim():'(kosong)';
-      const kunciList=String(q.jawaban).split('|').map(k=>k.trim().toLowerCase()).filter(k=>k);
-      benar=jawStr!=='(kosong)'&&kunciList.some(k=>k===jawStr.toLowerCase());
+  el.textContent='Menyimpan ke Google Sheets...';
+
+  // Urutan jawaban ikut SOAL asli (bukan SOAL_ACTIVE yang diacak)
+  // Jawaban1 selalu = soal ke-1 di Sheets, konsisten semua siswa
+  const analisis = SOAL.map((origQ)=>{
+    const activeIdx = SOAL_ACTIVE.findIndex(aq=>aq.soal===origQ.soal && aq.tipe===origQ.tipe);
+    const j = activeIdx>=0 ? JAWABAN[activeIdx] : undefined;
+    const poin = parseFloat(String(origQ.poin||1).replace(',','.'))||1;
+    const kosong = isEmpty(j);
+    let jawStr='(kosong)', benar=false;
+
+    if(!kosong){
+      if(origQ.tipe==='PG'){
+        const jawRaw=String(j).toUpperCase();
+        const kunci=String(origQ.jawaban||'').toUpperCase();
+        benar=jawRaw!==''&&kunci!==''&&jawRaw===kunci;
+        const map={A:origQ.opsiA,B:origQ.opsiB,C:origQ.opsiC,D:origQ.opsiD,E:origQ.opsiE};
+        jawStr=jawRaw+(map[jawRaw]?(' ('+map[jawRaw]+')'):'');
+      } else if(origQ.tipe==='BS'){
+        jawStr=String(j).toUpperCase();
+        benar=jawStr!==''&&jawStr===String(origQ.jawaban||'').toUpperCase();
+      } else if(origQ.tipe==='PGK'){
+        const arr=Array.isArray(j)?j:[];
+        const siswa=arr.map(x=>String(x).trim().toUpperCase()).filter(x=>x).sort().join(',');
+        const kunci=String(origQ.jawaban||'').split(',').map(x=>x.trim().toUpperCase()).filter(x=>x).sort().join(',');
+        jawStr=siswa||'(kosong)';
+        benar=siswa!==''&&kunci!==''&&siswa===kunci;
+      } else if(origQ.tipe==='JODOH'){
+        const km={};
+        String(origQ.jawaban||'').split(',').forEach(p=>{const d=p.indexOf('-');if(d>-1)km[p.substring(0,d).trim()]=p.substring(d+1).trim();});
+        if(typeof j==='object'&&!Array.isArray(j)&&j!==null&&Object.keys(j).length>0){
+          jawStr=Object.entries(j).map(([k,v])=>k+':'+v).join('; ');
+          benar=Object.keys(km).length>0&&Object.entries(km).every(([k,v])=>j[k]===v);
+        }
+      } else if(origQ.tipe==='ISIAN'){
+        jawStr=String(j).trim()||'(kosong)';
+        benar=jawStr!=='(kosong)'&&checkIsian(j,origQ.jawaban);
+      }
     }
-    return {jawaban:jawStr, benar, poin:parseFloat(q.poin)||1};
+    return {jawaban:jawStr, benar, poin};
   });
-  // Use GET with encoded payload to avoid no-cors issues
+
+  const totalBenar=analisis.filter(a=>a.benar).length;
+  const totalSalah=analisis.filter(a=>!a.benar).length;
+
   try{
-    const payload = encodeURIComponent(JSON.stringify({...data, action:'saveHasil', analisis}));
-    await fetch(CFG.sheetsUrl+'?action=saveHasil&payload='+payload, {method:'GET', mode:'cors'});
-    el.textContent='✅ Nilai tersimpan di Google Sheets!';
+    const payload=encodeURIComponent(JSON.stringify({
+      ...data, action:'saveHasil', analisis,
+      benar:totalBenar, salah:totalSalah
+    }));
+    await fetch(CFG.sheetsUrl+'?action=saveHasil&payload='+payload,{method:'GET',mode:'cors'});
+    el.textContent='Nilai tersimpan di Google Sheets!';
   }catch(e){
-    // Fallback: try POST no-cors (data may not arrive but won't crash)
-    try{ fetch(CFG.sheetsUrl,{method:'POST',mode:'no-cors',body:JSON.stringify({...data,action:'saveHasil',analisis})}); }catch(_){}
-    el.textContent='✅ Tersimpan! (cek Sheets dalam 5 detik)';
+    el.textContent='Gagal kirim ke Sheets, tersimpan lokal.';
   }
 }
 
