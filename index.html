@@ -149,7 +149,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
 .isian-input:focus{border-color:var(--isian);outline:none;}
 
 /* FOOTER NAV */
-.q-footer{background:white;border-top:1px solid var(--border);padding:.75rem 1rem;display:flex;gap:.5rem;}
+.q-footer{background:white;border-top:1px solid var(--border);padding:.6rem 1rem 1.4rem;display:flex;gap:.5rem;}
 .btn-nav{flex:1;padding:.8rem;border-radius:10px;font-size:.9rem;font-weight:700;transition:all .15s;}
 .btn-prev{background:var(--bg);color:var(--primary);border:2px solid var(--border);}
 .btn-next{background:var(--primary);color:white;}
@@ -399,13 +399,13 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
   <div class="progress-nav">
     <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-fill" style="width:0%"></div></div>
     <div class="q-nav-scroll" id="q-nav"></div>
-    <div style="display:flex;gap:.5rem;margin-top:.6rem;">
-      <button class="btn-nav btn-prev" id="btn-prev" onclick="prevQ()" style="flex:1;padding:.6rem;font-size:.85rem;">← Sebelumnya</button>
-      <button class="btn-nav btn-next" id="btn-next" onclick="nextQ()" style="flex:1;padding:.6rem;font-size:.85rem;">Berikutnya →</button>
-      <button class="btn-nav btn-submit-exam" id="btn-submit" onclick="showReview()" style="display:none;flex:2;padding:.6rem;font-size:.85rem;">📋 Review & Kirim</button>
-    </div>
   </div>
   <div class="question-area" id="q-area"></div>
+  <div class="q-footer">
+    <button class="btn-nav btn-prev" id="btn-prev" onclick="prevQ()">← Sebelumnya</button>
+    <button class="btn-nav btn-next" id="btn-next" onclick="nextQ()">Berikutnya →</button>
+    <button class="btn-nav btn-submit-exam" id="btn-submit" onclick="showReview()" style="display:none">📋 Review & Kirim</button>
+  </div>
 </div>
 
 <!-- SCREEN REVIEW -->
@@ -1222,7 +1222,7 @@ function renderQ(idx){
   else if(q.tipe==='ISIAN')html+=renderIsian(q,idx);
   // Tombol ragu-ragu
   const isRagu = RAGU[idx] || false;
-  html += `<div style="padding:0 1rem .75rem">
+  html += `<div style="padding:0 0 .75rem">
     <button class="btn-ragu ${isRagu?'aktif':''}" onclick="toggleRagu(${idx})">
       ${isRagu ? 'Ditandai Ragu-ragu — Klik untuk Hapus' : 'Tandai Ragu-ragu'}
     </button>
@@ -1316,7 +1316,7 @@ function showReview(){
     if(j){if(typeof j==='string')at=j;else if(Array.isArray(j))at=j.join(', ');else if(typeof j==='object')at=Object.entries(j).map(([k,v])=>`${k}→${v}`).join(', ');}
     const isRagu=RAGU[i];
     const warna = isRagu ? 'var(--accent)' : 'var(--success)';
-    const ikon  = isRagu ? '🤔' : '✅';
+    const ikon  = isRagu ? '⚠️' : '✅';
     return `<div class="review-item answered" style="border-left-color:${warna}" onclick="goQ(${i});showScreen('screen-exam')">
       <div style="font-size:.9rem">${i+1}. ${esc(q.soal.substring(0,70))}${q.soal.length>70?'...':''}</div>
       <div style="font-size:.75rem;margin-top:.3rem;color:${warna}">${ikon} ${at}${isRagu?' (ragu-ragu)':''} · ${q.poin}pt</div>
