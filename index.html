@@ -83,9 +83,11 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
 .q-dot.answered{background:var(--success);border-color:var(--success);color:white;}
 .q-dot.current{border-color:var(--primary);color:var(--primary);background:white;}
 .q-dot.current.answered{background:var(--primary);border-color:var(--primary);color:white;}
-.q-dot.ragu{background:#FFF3CD;border-color:var(--accent);color:#856404;}
-.q-dot.current.ragu{background:var(--accent);border-color:var(--accent);color:white;}
-.btn-ragu{width:100%;padding:.65rem;border-radius:10px;font-size:.85rem;font-weight:700;border:2px solid var(--accent);background:#FFF3CD;color:#856404;margin-top:.5rem;transition:all .15s;}
+.q-dot.ragu-jawab{background:var(--accent);border-color:var(--accent);color:white;}
+.q-dot.ragu-kosong{background:#FFF8E1;border-color:#FFD54F;color:#E65100;}
+.q-dot.current.ragu-jawab{background:#E65100;border-color:#E65100;color:white;}
+.q-dot.current.ragu-kosong{background:#FFD54F;border-color:#FFD54F;color:#5D4037;}
+.btn-ragu{width:100%;padding:.75rem;border-radius:10px;font-size:.85rem;font-weight:700;border:2px solid var(--accent);background:#FFF3CD;color:#856404;margin-top:.5rem;transition:all .15s;}
 .btn-ragu.aktif{background:var(--accent);color:white;border-color:var(--accent);}
 .btn-ragu:active{transform:scale(.98);}
 
@@ -397,13 +399,13 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
   <div class="progress-nav">
     <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-fill" style="width:0%"></div></div>
     <div class="q-nav-scroll" id="q-nav"></div>
+    <div style="display:flex;gap:.5rem;margin-top:.6rem;">
+      <button class="btn-nav btn-prev" id="btn-prev" onclick="prevQ()" style="flex:1;padding:.6rem;font-size:.85rem;">← Sebelumnya</button>
+      <button class="btn-nav btn-next" id="btn-next" onclick="nextQ()" style="flex:1;padding:.6rem;font-size:.85rem;">Berikutnya →</button>
+      <button class="btn-nav btn-submit-exam" id="btn-submit" onclick="showReview()" style="display:none;flex:2;padding:.6rem;font-size:.85rem;">📋 Review & Kirim</button>
+    </div>
   </div>
   <div class="question-area" id="q-area"></div>
-  <div class="q-footer">
-    <button class="btn-nav btn-prev" id="btn-prev" onclick="prevQ()">← Sebelumnya</button>
-    <button class="btn-nav btn-next" id="btn-next" onclick="nextQ()">Berikutnya →</button>
-    <button class="btn-nav btn-submit-exam" id="btn-submit" onclick="showReview()" style="display:none">📋 Review & Kirim</button>
-  </div>
 </div>
 
 <!-- SCREEN REVIEW -->
@@ -1189,10 +1191,12 @@ function buildDots(){
 function syncDots(){
   SOAL_ACTIVE.forEach((_,i)=>{
     const d=document.getElementById('dot-'+i); if(!d)return;
-    d.classList.remove('answered','ragu','current');
-    if(hasAns(i)){
-      if(RAGU[i]) d.classList.add('ragu');   // dijawab tapi ragu → kuning
-      else        d.classList.add('answered'); // dijawab yakin → hijau
+    d.classList.remove('answered','ragu-jawab','ragu-kosong','current');
+    if(RAGU[i]){
+      if(hasAns(i)) d.classList.add('ragu-jawab');  // jawab + ragu → kuning jelas/oranye
+      else          d.classList.add('ragu-kosong');  // belum jawab + ragu → kuning pucat
+    } else if(hasAns(i)){
+      d.classList.add('answered'); // dijawab yakin → hijau
     }
   });
   document.getElementById('dot-'+currentIdx)?.classList.add('current');
@@ -1220,7 +1224,7 @@ function renderQ(idx){
   const isRagu = RAGU[idx] || false;
   html += `<div style="padding:0 1rem .75rem">
     <button class="btn-ragu ${isRagu?'aktif':''}" onclick="toggleRagu(${idx})">
-      ${isRagu ? '🤔 Ditandai Ragu-ragu — klik untuk hapus tanda' : '🤔 Tandai Ragu-ragu'}
+      ${isRagu ? 'Ditandai Ragu-ragu — Klik untuk Hapus' : 'Tandai Ragu-ragu'}
     </button>
   </div>`;
   document.getElementById('q-area').innerHTML=html;
