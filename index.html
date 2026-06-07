@@ -1512,35 +1512,55 @@ async function sendHasil(data){
 }
 
 function postToSheets(url, data) {
-  // Kirim via fetch no-cors (tidak butuh respons balik, hanya kirim data)
-  return fetch(url, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    body: 'payload=' + encodeURIComponent(JSON.stringify(data))
-  }).catch(() => {
-    // Fallback: iframe form POST jika fetch gagal
-    return new Promise((resolve) => {
-      const iframeName = 'sf_' + Date.now();
-      const iframe = document.createElement('iframe');
-      iframe.name = iframeName;
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = url;
-      form.target = iframeName;
-      form.style.display = 'none';
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = 'payload';
-      input.value = JSON.stringify(data);
-      form.appendChild(input);
-      document.body.appendChild(form);
-      iframe.onload = () => { setTimeout(()=>{ try{document.body.removeChild(form);document.body.removeChild(iframe);}catch(e){} }, 1000); resolve(true); };
-      setTimeout(()=>resolve(true), 5000);
-      form.submit();
-    });
+  // Strategi: kirim data sebagai parameter GET ke Apps Script
+  // Apps Script doGet bisa baca e.parameter tanpa masalah CORS
+  // Data besar dipecah: info utama via GET, analisis disimpan terpisah
+  return new Promise(async (resolve) => {
+    try {
+      // Serialisasi payload
+      const jsonStr = JSON.stringify(data);
+      const encoded = encodeURIComponent(jsonStr);
+
+      if (encoded.length < 7000) {
+        // Data kecil: langsung kirim via GET
+        const res = await fetch(url + '?action=saveHasil&payload=' + encoded, {
+          method: 'GET',
+          mode: 'cors'
+        });
+        resolve(true);
+      } else {
+        // Data besar: pecah analisis, kirim info utama dulu
+        // Kirim tanpa analisis detail (hanya summary)
+        const ringkas = {
+          action: 'saveHasil',
+          name: data.name, kelas: data.kelas, ujian: data.ujian,
+          score: data.score, benar: data.benar, salah: data.salah,
+          totalQ: data.totalQ, durasi: data.durasi, submitTime: data.submitTime,
+          analisis: data.analisis
+        };
+        // Coba chunk: kirim analisis lebih ringkas
+        const analisisRingkas = (data.analisis||[]).map(a=>({
+          j: a.jawaban.substring(0,30), // potong jawaban panjang
+          b: a.benar?1:0,
+          p: a.poin
+        }));
+        ringkas.analisis = analisisRingkas;
+        const enc2 = encodeURIComponent(JSON.stringify(ringkas));
+        await fetch(url + '?action=saveHasil&payload=' + enc2, {
+          method: 'GET', mode: 'cors'
+        });
+        resolve(true);
+      }
+    } catch(e) {
+      // Last resort: no-cors POST (data mungkin tidak terkirim tapi tidak crash)
+      try {
+        fetch(url, {
+          method: 'POST', mode: 'no-cors',
+          body: JSON.stringify(data)
+        });
+      } catch(_) {}
+      resolve(false);
+    }
   });
 }
 
