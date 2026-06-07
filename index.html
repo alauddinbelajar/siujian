@@ -755,9 +755,16 @@ async function saveSettings() {
         acakJawaban: CFG.acakJawaban,
         password:    CFG.password
       };
-      await postToSheets(CFG.sheetsUrl, {action:'saveCfg', cfg: cfgToSave});
-      const pwdInfo = CFG.password ? ' | Password: ' + CFG.password : ' | Tanpa password';
-      alert('✅ Pengaturan disimpan & disinkronkan ke semua perangkat!' + pwdInfo);
+      // saveCfg pakai GET karena payload kecil, lebih reliable
+      const cfgPayload = encodeURIComponent(JSON.stringify({action:'saveCfg', cfg: cfgToSave}));
+      const cfgRes = await fetch(CFG.sheetsUrl + '?action=saveCfg&payload=' + cfgPayload, {method:'GET', mode:'cors'});
+      const cfgData = await cfgRes.json();
+      if(cfgData.status === 'ok'){
+        const pwdInfo = CFG.password ? ' | Password: ' + CFG.password : ' | Tanpa password';
+        alert('✅ Pengaturan disimpan & disinkronkan ke semua perangkat!' + pwdInfo);
+      } else {
+        alert('⚠️ Sheets merespons error: ' + (cfgData.msg||'unknown'));
+      }
     } catch(e) {
       alert('⚠️ Tersimpan lokal. Gagal sinkron ke Sheets: ' + e.message);
     }
@@ -1525,13 +1532,31 @@ async function sendHasil(data){
     benar:totalBenar, salah:totalSalah
   };
 
-  // Kirim via hidden iframe form POST - bypass CORS & tidak ada batasan panjang URL
-  try {
-    await postToSheets(CFG.sheetsUrl, payload);
-    el.textContent = 'Nilai tersimpan di Google Sheets!';
-  } catch(e) {
-    el.textContent = 'Tersimpan lokal. Sheets: ' + e.message;
+  // Jeda acak 1-5 detik sebelum kirim — otomatis sebar 70 submit yang serentak
+  const jedaAwal = Math.floor(Math.random() * 4000) + 1000;
+  el.textContent = 'Menyimpan ke Google Sheets...';
+  await new Promise(r => setTimeout(r, jedaAwal));
+
+  // Retry otomatis jika server masih sibuk (jeda makin lama tiap percobaan)
+  let berhasil = false;
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    try {
+      if (attempt > 1) el.textContent = `Mencoba ulang... (${attempt}/5)`;
+      await postToSheets(CFG.sheetsUrl, payload);
+      berhasil = true;
+      break;
+    } catch(e) {
+      if (attempt < 5) {
+        // Jeda makin lama + sedikit acak agar tidak bentrok lagi: 4s, 8s, 13s, 20s
+        const base = [4000, 8000, 13000, 20000][attempt - 1];
+        const jitter = Math.floor(Math.random() * 2000);
+        await new Promise(r => setTimeout(r, base + jitter));
+      }
+    }
   }
+  el.textContent = berhasil
+    ? '✅ Nilai tersimpan di Google Sheets!'
+    : '⚠️ Gagal simpan ke Sheets. Hubungi guru — nilai Anda: ' + (payload.score || 0);
 }
 
 async function postToSheets(url, data) {
