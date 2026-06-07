@@ -456,24 +456,11 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
   </div>
   <div class="admin-body">
 
-    <!-- KONEKSI SHEETS -->
+    <!-- KONEKSI SHEETS — URL sudah tertanam, hanya tampilkan status -->
     <div class="admin-card">
-      <h3>🔗 Koneksi Google Sheets</h3>
-      <input class="sheets-url-input" id="sheets-script-url" placeholder="Paste URL Apps Script di sini..." type="url">
-
-      <button class="btn-connect" id="btn-connect" onclick="connectSheets()">Hubungkan ke Google Sheets</button>
+      <h3>🔗 Status Koneksi Google Sheets</h3>
       <div class="connect-status" id="connect-status" style="display:none"></div>
-      <div class="sheets-info-box" style="margin-top:.75rem;">
-        <strong>📋 Cara setup Google Sheets:</strong><br>
-        1. Buka <strong>Google Sheets</strong> → buat spreadsheet baru<br>
-        2. Buat 2 sheet: <strong>SOAL</strong> dan <strong>HASIL</strong><br>
-        3. Buka <strong>Extensions → Apps Script</strong><br>
-        4. Paste kode Apps Script (unduh di bawah) → Deploy<br>
-        5. Copy URL deployment → paste di kotak atas → Hubungkan<br>
-        <br>
-        <button onclick="downloadAppsScript()" style="background:var(--primary);color:white;border-radius:6px;padding:.4rem .8rem;font-size:.78rem;font-weight:700;cursor:pointer;border:none;">📥 Unduh Kode Apps Script</button>
-
-      </div>
+      <button class="btn-connect" id="btn-connect" onclick="connectSheets()">🔄 Cek Koneksi</button>
     </div>
 
     <!-- PENGATURAN UJIAN -->
@@ -777,13 +764,11 @@ async function saveSettings() {
 // GOOGLE SHEETS CONNECTION
 // =========================================================
 async function connectSheets() {
-  const url = document.getElementById('sheets-script-url').value.trim();
-  if(!url){alert('⚠️ Masukkan URL Apps Script dulu!');return;}
-  CFG.sheetsUrl = url;
-  localStorage.setItem('siujian_cfg', JSON.stringify(CFG));
+  // URL sudah hardcode, tidak perlu input manual
+  const url = CFG.sheetsUrl;
   const btn = document.getElementById('btn-connect');
   const status = document.getElementById('connect-status');
-  btn.textContent = '⏳ Menghubungkan...';
+  btn.textContent = '⏳ Mengecek...';
   btn.classList.add('loading');
   status.style.display='none';
   try {
@@ -800,10 +785,10 @@ async function connectSheets() {
     } else { throw new Error('Format data tidak valid'); }
   } catch(e) {
     status.className='connect-status err';
-    status.textContent='❌ Gagal terhubung. Cek URL dan pastikan Apps Script sudah di-deploy.';
+    status.textContent='❌ Gagal terhubung. Pastikan Apps Script sudah di-deploy.';
     status.style.display='block';
   }
-  btn.textContent='Hubungkan ke Google Sheets';
+  btn.textContent='🔄 Cek Koneksi';
   btn.classList.remove('loading');
 }
 
@@ -825,6 +810,21 @@ async function pushSoalToSheets() {
 const TIPE_LIST = ['PG','PGK','JODOH','BS','ISIAN'];
 const TIPE_COLOR = {PG:'#EBF5FB',PGK:'#EAF4E7',JODOH:'#FEF9E7',BS:'#F5EEF8',ISIAN:'#E8F8F5'};
 const TIPE_LABEL = {PG:'Pilihan Ganda',PGK:'PG Kompleks',JODOH:'Menjodohkan',BS:'Benar/Salah',ISIAN:'Isian'};
+
+// Konversi otomatis semua format link Google Drive ke thumbnail yang bisa tampil di browser
+function fixDriveUrl(url) {
+  if (!url) return '';
+  // Sudah format thumbnail, biarkan
+  if (url.includes('drive.google.com/thumbnail')) return url;
+  // Format uc?export=view&id=FILE_ID
+  const m1 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (m1) return 'https://drive.google.com/thumbnail?id=' + m1[1] + '&sz=w800';
+  // Format /file/d/FILE_ID/
+  const m2 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (m2) return 'https://drive.google.com/thumbnail?id=' + m2[1] + '&sz=w800';
+  // Bukan link Drive, kembalikan apa adanya
+  return url;
+}
 
 function renderSoalEditor() {
   const wrap = document.getElementById('soal-editor');
@@ -1223,7 +1223,7 @@ function goQ(i){currentIdx=i;renderQ(i);document.getElementById('dot-'+i)?.scrol
 const TYPE_LABELS={PG:'Pilihan Ganda',PGK:'PG Kompleks',JODOH:'Menjodohkan',BS:'Benar / Salah',ISIAN:'Isian Singkat'};
 function renderQ(idx){
   const q=SOAL_ACTIVE[idx];
-  const imgTag=q.gambarSoal?`<img class="q-img" src="${q.gambarSoal}" alt="Gambar soal">`:'';
+  const imgTag=q.gambarSoal?`<img class="q-img" src="${fixDriveUrl(q.gambarSoal)}" alt="Gambar soal" onerror="this.style.display='none'">`:'';
   let html=`<div class="q-card"><div class="q-type-badge ${q.tipe}">${TYPE_LABELS[q.tipe]||q.tipe}</div><div class="q-num">Soal ${idx+1} dari ${SOAL_ACTIVE.length}</div><div class="q-text">${esc(q.soal)}</div>${imgTag}<div class="q-poin">${q.poin} poin</div></div>`;
   if(q.tipe==='PG')html+=renderPG(q,idx);
   else if(q.tipe==='PGK')html+=renderPGK(q,idx);
@@ -1237,7 +1237,7 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function optImg(src){return src?`<img class="opt-img" src="${src}" alt="">`:''}
 
 function renderPG(q,idx){
-  let opts=[{l:'A',t:q.opsiA,i:q.gambarOpsiA},{l:'B',t:q.opsiB,i:q.gambarOpsiB},{l:'C',t:q.opsiC,i:q.gambarOpsiC},{l:'D',t:q.opsiD,i:q.gambarOpsiD},{l:'E',t:q.opsiE,i:q.gambarOpsiE}].filter(o=>o.t||o.i);
+  let opts=[{l:'A',t:q.opsiA,i:fixDriveUrl(q.gambarOpsiA)},{l:'B',t:q.opsiB,i:fixDriveUrl(q.gambarOpsiB)},{l:'C',t:q.opsiC,i:fixDriveUrl(q.gambarOpsiC)},{l:'D',t:q.opsiD,i:fixDriveUrl(q.gambarOpsiD)},{l:'E',t:q.opsiE,i:fixDriveUrl(q.gambarOpsiE)}].filter(o=>o.t||o.i);
   // Use stored order or shuffle once per question
   if(CFG.acakJawaban){
     if(!q._opsiOrder) q._opsiOrder=shuffle([...opts.map(o=>o.l)]);
@@ -1249,7 +1249,7 @@ function renderPG(q,idx){
 function selPG(idx,l,el){JAWABAN[idx]=l;el.closest('.options-list').querySelectorAll('.opt-item').forEach(li=>li.classList.remove('selected'));el.classList.add('selected');syncDots();}
 
 function renderPGK(q,idx){
-  let opts=[{t:q.opsiA,i:q.gambarOpsiA,k:'A'},{t:q.opsiB,i:q.gambarOpsiB,k:'B'},{t:q.opsiC,i:q.gambarOpsiC,k:'C'},{t:q.opsiD,i:q.gambarOpsiD,k:'D'},{t:q.opsiE,i:q.gambarOpsiE,k:'E'}].filter(o=>o.t||o.i);
+  let opts=[{t:q.opsiA,i:fixDriveUrl(q.gambarOpsiA),k:'A'},{t:q.opsiB,i:fixDriveUrl(q.gambarOpsiB),k:'B'},{t:q.opsiC,i:fixDriveUrl(q.gambarOpsiC),k:'C'},{t:q.opsiD,i:fixDriveUrl(q.gambarOpsiD),k:'D'},{t:q.opsiE,i:fixDriveUrl(q.gambarOpsiE),k:'E'}].filter(o=>o.t||o.i);
   if(CFG.acakJawaban){
     if(!q._opsiOrder) q._opsiOrder=shuffle([...opts.map(o=>o.k)]);
     opts=q._opsiOrder.map(k=>opts.find(o=>o.k===k)).filter(Boolean);
@@ -1260,7 +1260,7 @@ function renderPGK(q,idx){
 function selPGK(idx,l,el){if(!JAWABAN[idx])JAWABAN[idx]=[];const arr=JAWABAN[idx],i=arr.indexOf(l);if(i>=0){arr.splice(i,1);el.classList.remove('checked');el.querySelector('.pgk-checkbox').textContent='';}else{arr.push(l);el.classList.add('checked');el.querySelector('.pgk-checkbox').textContent='✓';}syncDots();}
 
 function renderJodoh(q,idx){
-  const lefts=[{k:'A',t:q.opsiA,i:q.gambarOpsiA},{k:'B',t:q.opsiB,i:q.gambarOpsiB},{k:'C',t:q.opsiC,i:q.gambarOpsiC},{k:'D',t:q.opsiD,i:q.gambarOpsiD}].filter(o=>o.t||o.i);
+  const lefts=[{k:'A',t:q.opsiA,i:fixDriveUrl(q.gambarOpsiA)},{k:'B',t:q.opsiB,i:fixDriveUrl(q.gambarOpsiB)},{k:'C',t:q.opsiC,i:fixDriveUrl(q.gambarOpsiC)},{k:'D',t:q.opsiD,i:fixDriveUrl(q.gambarOpsiD)}].filter(o=>o.t||o.i);
   const kunciMap={};
   (q.jawaban||'').split(',').forEach(p=>{const d=p.indexOf('-');if(d>-1)kunciMap[p.substring(0,d).trim()]=p.substring(d+1).trim();});
   const allRights=[...new Set(Object.values(kunciMap))].filter(v=>v);
