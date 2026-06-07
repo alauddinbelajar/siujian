@@ -583,21 +583,35 @@ window.onload = async () => {
     }
   } catch(e){}
 
-  // 2. Muat CFG online dari Google Sheets (sinkron antar perangkat)
-  await fetchCfgFromSheets();
+  // 2. Paksa loading screen hilang maksimal 6 detik, apapun yang terjadi
+  const forceHide = setTimeout(()=>{
+    document.getElementById('loading').classList.add('hidden');
+    showScreen('screen-login');
+  }, 6000);
 
-  // 3. Muat soal dari Sheets
-  await fetchSoalFromSheets();
+  try {
+    // 3. Muat CFG online (max 3 detik)
+    await Promise.race([fetchCfgFromSheets(), wait(3000)]);
+    // 4. Muat soal (max 4 detik)
+    await Promise.race([fetchSoalFromSheets(), wait(4000)]);
+  } catch(e){}
 
+  clearTimeout(forceHide);
   updateLoginUI();
-  setTimeout(()=>{ document.getElementById('loading').classList.add('hidden'); showScreen('screen-login'); }, 800);
+  document.getElementById('loading').classList.add('hidden');
+  showScreen('screen-login');
 };
+
+function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
 // Muat pengaturan dari sheet CFG (online)
 async function fetchCfgFromSheets() {
   if(!CFG.sheetsUrl) return;
   try {
-    const res = await fetch(CFG.sheetsUrl + '?action=getCfg&t=' + Date.now(), {method:'GET', mode:'cors'});
+    const controller = new AbortController();
+    const tid = setTimeout(()=>controller.abort(), 5000);
+    const res = await fetch(CFG.sheetsUrl + '?action=getCfg&t=' + Date.now(), {method:'GET', mode:'cors', signal:controller.signal});
+    clearTimeout(tid);
     const data = await res.json();
     if(data.cfg && typeof data.cfg === 'object') {
       const url = CFG.sheetsUrl;
@@ -605,24 +619,26 @@ async function fetchCfgFromSheets() {
       CFG.sheetsUrl = url; // jangan timpa URL
       localStorage.setItem('siujian_cfg', JSON.stringify(CFG)); // cache lokal
     }
-  } catch(e){} // offline → tetap pakai localStorage
+  } catch(e){} // timeout / offline → tetap pakai localStorage
 }
 
 async function fetchSoalFromSheets() {
   if(!CFG.sheetsUrl) return;
   try {
-    const res = await fetch(CFG.sheetsUrl + '?action=getSoal', {method:'GET', mode:'cors'});
+    const controller = new AbortController();
+    const tid = setTimeout(()=>controller.abort(), 5000);
+    const res = await fetch(CFG.sheetsUrl + '?action=getSoal', {method:'GET', mode:'cors', signal:controller.signal});
+    clearTimeout(tid);
     const data = await res.json();
     if(data.soal && Array.isArray(data.soal) && data.soal.length > 0) {
       SOAL = data.soal;
       localStorage.setItem('siujian_soal', JSON.stringify(SOAL));
     } else {
-      // fallback to localStorage if fetch returns empty
       const ss = localStorage.getItem('siujian_soal');
       if(ss) SOAL = JSON.parse(ss);
     }
   } catch(e) {
-    // fallback to localStorage if offline/error
+    // timeout / offline → fallback ke localStorage
     try {
       const ss = localStorage.getItem('siujian_soal');
       if(ss) SOAL = JSON.parse(ss);
@@ -1623,4 +1639,43 @@ async function loadHasilDashboard(){
     <div class="dash-stats-row">
       <div class="dash-stat"><div class="ds-val">${total}</div><div class="ds-key">Total Peserta</div></div>
       <div class="dash-stat"><div class="ds-val">${rataRata}</div><div class="ds-key">Rata-rata</div></div>
-      <div class="dash-stat"><div class="ds-
+      <div class="dash-stat"><div class="ds-val">${lulus}</div><div class="ds-key">Lulus ≥75</div></div>
+    </div>
+    <div class="kelas-progress">
+      <div class="kelas-prog-row">
+        <span class="kelas-prog-label">5-A</span>
+        <div class="kelas-prog-bar"><div class="kelas-prog-fill" style="width:${pctA}%"></div></div>
+        <span class="kelas-prog-pct">${kelas5A.length}/${SISWA_5A.length} (${pctA}%)</span>
+      </div>
+      <div class="kelas-prog-row">
+        <span class="kelas-prog-label">5-B</span>
+        <div class="kelas-prog-bar"><div class="kelas-prog-fill" style="width:${pctB}%"></div></div>
+        <span class="kelas-prog-pct">${kelas5B.length}/${SISWA_5B.length} (${pctB}%)</span>
+      </div>
+    </div>
+    <div class="hasil-table-wrap">
+      <table class="hasil-table">
+        <thead><tr><th>#</th><th>Nama</th><th>Kelas</th><th>✅</th><th>❌</th><th>Nilai</th><th>Waktu</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function startDashboardAutoRefresh(){
+  if(dashboardInterval) clearInterval(dashboardInterval);
+  dashboardInterval = setInterval(()=>{
+    if(document.getElementById('screen-admin')?.classList.contains('active')) loadHasilDashboard();
+  }, 30000); // refresh every 30 seconds
+}
+
+function stopDashboardAutoRefresh(){
+  if(dashboardInterval){ clearInterval(dashboardInterval); dashboardInterval=null; }
+}
+function showScreen(id){
+  if(id==='screen-admin' && !adminLoggedIn){ openAdminOverlay(); return; }
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+</script>
+</body>
+</html>
