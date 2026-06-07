@@ -1014,7 +1014,7 @@ function saveHasilData(data) {
   // Gunakan totalQ agar kolom selalu 40 (sesuai jumlah soal) meski batch hanya kirim sebagian
   const jumlahKolom = Math.max(parseInt(data.totalQ)||0, analisis.length);
 
-  const jawabanH = Array.from({length:jumlahKolom},(_,i)=>'Jawaban'+(i+1));
+  const jawabanH = Array.from({length:jumlahKolom},(_,i)=>'Soal'+(i+1));
   const poinH    = Array.from({length:jumlahKolom},(_,i)=>'Poin'+(i+1));
   const baseH    = ['Nama','Kelas','Ujian','Nilai','Benar','Salah','Total','Durasi','Waktu'];
   const allH     = [...baseH, ...jawabanH, ...poinH];
@@ -1469,6 +1469,12 @@ function renderAnalisis(){
   document.getElementById('analisis-list').innerHTML = html;
 }
 
+function isEmptyAnswer(j){
+  return (j===undefined||j===null||j===''||
+    (Array.isArray(j)&&j.length===0)||
+    (typeof j==='object'&&!Array.isArray(j)&&j!==null&&Object.keys(j).length===0));
+}
+
 async function sendHasil(data){
   const el = document.getElementById('saving-note');
   el.textContent = 'Menyimpan ke Google Sheets...';
@@ -1478,7 +1484,7 @@ async function sendHasil(data){
     const activeIdx = SOAL_ACTIVE.findIndex(aq=>aq.soal===origQ.soal && aq.tipe===origQ.tipe);
     const j = activeIdx>=0 ? JAWABAN[activeIdx] : undefined;
     const poin = parseFloat(String(origQ.poin||1).replace(',','.'))||1;
-    const kosong = isEmpty(j);
+    const kosong = isEmptyAnswer(j);
     let jawStr='(kosong)', benar=false;
 
     if(!kosong){
@@ -1486,10 +1492,9 @@ async function sendHasil(data){
         const jawRaw=String(j).toUpperCase();
         const kunci=String(origQ.jawaban||'').toUpperCase();
         benar=jawRaw!==''&&kunci!==''&&jawRaw===kunci;
-        const map={A:origQ.opsiA,B:origQ.opsiB,C:origQ.opsiC,D:origQ.opsiD,E:origQ.opsiE};
-        jawStr=jawRaw+(map[jawRaw]?(' ('+map[jawRaw]+')'):'');
+        jawStr=jawRaw; // hanya huruf: A/B/C/D/E
       } else if(origQ.tipe==='BS'){
-        jawStr=String(j).toUpperCase();
+        jawStr=String(j).toUpperCase(); // BENAR atau SALAH
         benar=jawStr!==''&&jawStr===String(origQ.jawaban||'').toUpperCase();
       } else if(origQ.tipe==='PGK'){
         const arr=Array.isArray(j)?j:[];
@@ -1530,12 +1535,11 @@ async function sendHasil(data){
 }
 
 async function postToSheets(url, data) {
-  // Kompres jawaban agar muat dalam 1 URL (max ~7500 char encoded)
-  // Untuk 40 soal: rata-rata 15 char per jawaban = 600 char, aman
+  // Kirim field lengkap agar Apps Script bisa baca jawaban/benar/poin dengan benar
   const analisis = (data.analisis||[]).map(a=>({
-    j: String(a.jawaban||'').substring(0, 20), // singkat
-    b: a.benar ? 1 : 0,
-    p: a.poin
+    jawaban: String(a.jawaban||'').substring(0, 50),
+    benar: a.benar ? 1 : 0,
+    poin: a.poin
   }));
 
   const payload = {
