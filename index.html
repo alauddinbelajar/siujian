@@ -1535,7 +1535,6 @@ async function sendHasil(data){
 }
 
 async function postToSheets(url, data) {
-  // Kirim field lengkap agar Apps Script bisa baca jawaban/benar/poin dengan benar
   const analisis = (data.analisis||[]).map(a=>({
     jawaban: String(a.jawaban||'').substring(0, 50),
     benar: a.benar ? 1 : 0,
@@ -1552,11 +1551,44 @@ async function postToSheets(url, data) {
     analisis
   };
 
-  const encoded = encodeURIComponent(JSON.stringify(payload));
-  const res = await fetch(url + '?action=saveHasil&payload=' + encoded, {
-    method: 'GET', mode: 'cors'
+  const jsonStr = JSON.stringify(payload);
+
+  // Coba GET dulu (hanya untuk payload kecil < 6000 char encoded)
+  const encoded = encodeURIComponent(jsonStr);
+  if (encoded.length < 6000) {
+    const res = await fetch(url + '?action=saveHasil&payload=' + encoded, {
+      method: 'GET', mode: 'cors'
+    });
+    return res.ok;
+  }
+
+  // Payload besar -> kirim POST no-cors via form (bypass CORS, data tetap masuk ke Apps Script)
+  return new Promise((resolve) => {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    form.target = '_siujian_submit';
+    form.style.display = 'none';
+
+    const inp = document.createElement('input');
+    inp.type = 'hidden';
+    inp.name = 'payload';
+    inp.value = jsonStr;
+    form.appendChild(inp);
+
+    let iframe = document.getElementById('_siujian_iframe');
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.name = '_siujian_submit';
+      iframe.id = '_siujian_iframe';
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+    setTimeout(() => { form.remove(); resolve(true); }, 1500);
   });
-  return res.ok;
 }
 
 function printResult(){
