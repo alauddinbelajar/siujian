@@ -572,21 +572,41 @@ const SISWA_ALL = [...new Set([...SISWA_5A,...SISWA_5B])].sort();
 // INIT
 // =========================================================
 window.onload = async () => {
+  // 1. Muat CFG dari localStorage sebagai fallback sementara
   try {
     const sc = localStorage.getItem('siujian_cfg');
     if(sc) {
       const saved = JSON.parse(sc);
-      // Keep hardcoded URL, only restore other settings
       const url = CFG.sheetsUrl;
       Object.assign(CFG, saved);
-      CFG.sheetsUrl = url; // always use hardcoded URL
+      CFG.sheetsUrl = url; // selalu pakai URL hardcoded
     }
   } catch(e){}
-  // Always fetch soal from Sheets on every load
+
+  // 2. Muat CFG online dari Google Sheets (sinkron antar perangkat)
+  await fetchCfgFromSheets();
+
+  // 3. Muat soal dari Sheets
   await fetchSoalFromSheets();
+
   updateLoginUI();
   setTimeout(()=>{ document.getElementById('loading').classList.add('hidden'); showScreen('screen-login'); }, 800);
 };
+
+// Muat pengaturan dari sheet CFG (online)
+async function fetchCfgFromSheets() {
+  if(!CFG.sheetsUrl) return;
+  try {
+    const res = await fetch(CFG.sheetsUrl + '?action=getCfg&t=' + Date.now(), {method:'GET', mode:'cors'});
+    const data = await res.json();
+    if(data.cfg && typeof data.cfg === 'object') {
+      const url = CFG.sheetsUrl;
+      Object.assign(CFG, data.cfg);
+      CFG.sheetsUrl = url; // jangan timpa URL
+      localStorage.setItem('siujian_cfg', JSON.stringify(CFG)); // cache lokal
+    }
+  } catch(e){} // offline → tetap pakai localStorage
+}
 
 async function fetchSoalFromSheets() {
   if(!CFG.sheetsUrl) return;
@@ -680,13 +700,16 @@ function doAdminLogin() {
 // ADMIN PANEL
 // =========================================================
 async function loadAdminPanel() {
-  document.getElementById('cfg-nama').value = CFG.namaUjian;
-  document.getElementById('cfg-waktu').value = CFG.waktuMenit;
-  document.getElementById('cfg-acak').value = CFG.acakSoal ? '1' : '0';
-  document.getElementById('cfg-acak-jwb').value = CFG.acakJawaban ? '1' : '0';
-  document.getElementById('cfg-password').value = CFG.password || '';
-  document.getElementById('sheets-script-url').value = CFG.sheetsUrl || '';
-  document.getElementById('sheets-direct-url').value = CFG.sheetsDirectUrl || '';
+  // Refresh CFG dari Sheets dulu sebelum isi form
+  await fetchCfgFromSheets();
+
+  document.getElementById('cfg-nama').value        = CFG.namaUjian;
+  document.getElementById('cfg-waktu').value       = CFG.waktuMenit;
+  document.getElementById('cfg-acak').value        = CFG.acakSoal ? '1' : '0';
+  document.getElementById('cfg-acak-jwb').value    = CFG.acakJawaban ? '1' : '0';
+  document.getElementById('cfg-password').value    = CFG.password || '';
+  document.getElementById('sheets-script-url').value  = CFG.sheetsUrl || '';
+  document.getElementById('sheets-direct-url').value  = CFG.sheetsDirectUrl || '';
   // Always reload soal from Sheets when entering admin
   if(CFG.sheetsUrl) {
     document.getElementById('soal-empty').style.display='none';
@@ -706,17 +729,37 @@ async function loadAdminPanel() {
   loadHasilDashboard();
 }
 
-function saveSettings() {
-  CFG.namaUjian = document.getElementById('cfg-nama').value || 'Ujian PAI';
-  CFG.waktuMenit = parseInt(document.getElementById('cfg-waktu').value)||60;
-  CFG.acakSoal = document.getElementById('cfg-acak').value==='1';
+async function saveSettings() {
+  CFG.namaUjian   = document.getElementById('cfg-nama').value || 'Ujian PAI';
+  CFG.waktuMenit  = parseInt(document.getElementById('cfg-waktu').value)||60;
+  CFG.acakSoal    = document.getElementById('cfg-acak').value==='1';
   CFG.acakJawaban = document.getElementById('cfg-acak-jwb').value==='1';
-  CFG.password = document.getElementById('cfg-password').value.trim();
+  CFG.password    = document.getElementById('cfg-password').value.trim();
+
+  // Simpan lokal
   localStorage.setItem('siujian_cfg', JSON.stringify(CFG));
   localStorage.setItem('siujian_soal', JSON.stringify(SOAL));
   updateLoginUI();
-  const pwdInfo = CFG.password ? ' | Password: ' + CFG.password : ' | Tanpa password';
-  alert('Pengaturan disimpan! ' + pwdInfo);
+
+  // Simpan online ke Google Sheets agar sinkron semua perangkat
+  if(CFG.sheetsUrl) {
+    try {
+      const cfgToSave = {
+        namaUjian:   CFG.namaUjian,
+        waktuMenit:  CFG.waktuMenit,
+        acakSoal:    CFG.acakSoal,
+        acakJawaban: CFG.acakJawaban,
+        password:    CFG.password
+      };
+      await postToSheets(CFG.sheetsUrl, {action:'saveCfg', cfg: cfgToSave});
+      const pwdInfo = CFG.password ? ' | Password: ' + CFG.password : ' | Tanpa password';
+      alert('✅ Pengaturan disimpan & disinkronkan ke semua perangkat!' + pwdInfo);
+    } catch(e) {
+      alert('⚠️ Tersimpan lokal. Gagal sinkron ke Sheets: ' + e.message);
+    }
+  } else {
+    alert('Pengaturan disimpan lokal.' + (CFG.password ? ' | Password: ' + CFG.password : ''));
+  }
 }
 
 // =========================================================
@@ -1526,18 +1569,17 @@ async function loadHasilDashboard(){
       const res = await fetch(CFG.sheetsUrl+'?action=getHasil&t='+Date.now(),{method:'GET',mode:'cors'});
       const data = await res.json();
       if(data.hasil && Array.isArray(data.hasil) && data.hasil.length) {
-        hasil = data.hasil;
-        // Normalize field names (sheets returns lowercase)
-        hasil = hasil.map(r=>({
-          name: r.nama||r.name||'',
-          kelas: r.kelas||'',
-          ujian: r.ujian||'',
-          score: parseFloat(r.nilai||r.score)||0,
-          benar: parseInt(r.benar)||0,
-          salah: parseInt(r.salah)||0,
-          totalQ: parseInt(r.total||r.totalq)||0,
-          durasi: r.durasi||'',
-          submitTime: r.waktu||r.submittime||''
+        // Apps Script getHasilData() sudah mengembalikan field: name, kelas, ujian, score, benar, salah, totalQ, durasi, submitTime
+        hasil = data.hasil.map(r=>({
+          name:       r.name       || r.nama  || '',
+          kelas:      r.kelas      || '',
+          ujian:      r.ujian      || '',
+          score:      parseFloat(String(r.score || r.nilai || '0').replace(',','.')) || 0,
+          benar:      parseInt(r.benar)  || 0,
+          salah:      parseInt(r.salah)  || 0,
+          totalQ:     parseInt(r.totalQ  || r.total) || 0,
+          durasi:     r.durasi     || '',
+          submitTime: r.submitTime || r.waktu || ''
         }));
       }
     }catch(e){}
@@ -1581,43 +1623,4 @@ async function loadHasilDashboard(){
     <div class="dash-stats-row">
       <div class="dash-stat"><div class="ds-val">${total}</div><div class="ds-key">Total Peserta</div></div>
       <div class="dash-stat"><div class="ds-val">${rataRata}</div><div class="ds-key">Rata-rata</div></div>
-      <div class="dash-stat"><div class="ds-val">${lulus}</div><div class="ds-key">Lulus ≥75</div></div>
-    </div>
-    <div class="kelas-progress">
-      <div class="kelas-prog-row">
-        <span class="kelas-prog-label">5-A</span>
-        <div class="kelas-prog-bar"><div class="kelas-prog-fill" style="width:${pctA}%"></div></div>
-        <span class="kelas-prog-pct">${kelas5A.length}/${SISWA_5A.length} (${pctA}%)</span>
-      </div>
-      <div class="kelas-prog-row">
-        <span class="kelas-prog-label">5-B</span>
-        <div class="kelas-prog-bar"><div class="kelas-prog-fill" style="width:${pctB}%"></div></div>
-        <span class="kelas-prog-pct">${kelas5B.length}/${SISWA_5B.length} (${pctB}%)</span>
-      </div>
-    </div>
-    <div class="hasil-table-wrap">
-      <table class="hasil-table">
-        <thead><tr><th>#</th><th>Nama</th><th>Kelas</th><th>✅</th><th>❌</th><th>Nilai</th><th>Waktu</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
-}
-
-function startDashboardAutoRefresh(){
-  if(dashboardInterval) clearInterval(dashboardInterval);
-  dashboardInterval = setInterval(()=>{
-    if(document.getElementById('screen-admin')?.classList.contains('active')) loadHasilDashboard();
-  }, 30000); // refresh every 30 seconds
-}
-
-function stopDashboardAutoRefresh(){
-  if(dashboardInterval){ clearInterval(dashboardInterval); dashboardInterval=null; }
-}
-function showScreen(id){
-  if(id==='screen-admin' && !adminLoggedIn){ openAdminOverlay(); return; }
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-</script>
-</body>
-</html>
+      <div class="dash-stat"><div class="ds-
