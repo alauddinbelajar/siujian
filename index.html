@@ -292,8 +292,8 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
 .btn-modal-ok{background:var(--danger);color:white;}
 
 /* LOADING */
-.loading-screen{position:fixed;inset:0;background:var(--primary);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:400;transition:opacity .5s;}
-.loading-screen.hidden{opacity:0;pointer-events:none;}
+.loading-screen{position:fixed;inset:0;background:var(--primary);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:400;transition:opacity .4s,visibility .4s;}
+.loading-screen.hidden{opacity:0;visibility:hidden;pointer-events:none;display:none;}
 .ld-logo{color:white;text-align:center;}
 .ld-logo h1{font-size:2rem;font-weight:800;margin-bottom:.25rem;}
 .ld-logo p{opacity:.7;font-size:.85rem;}
@@ -579,27 +579,25 @@ window.onload = async () => {
       const saved = JSON.parse(sc);
       const url = CFG.sheetsUrl;
       Object.assign(CFG, saved);
-      CFG.sheetsUrl = url; // selalu pakai URL hardcoded
+      CFG.sheetsUrl = url;
     }
   } catch(e){}
 
-  // 2. Paksa loading screen hilang maksimal 6 detik, apapun yang terjadi
-  const forceHide = setTimeout(()=>{
-    document.getElementById('loading').classList.add('hidden');
-    showScreen('screen-login');
-  }, 6000);
-
+  // 2. Muat soal dari cache lokal dulu agar bisa langsung tampil
   try {
-    // 3. Muat CFG online (max 3 detik)
-    await Promise.race([fetchCfgFromSheets(), wait(3000)]);
-    // 4. Muat soal (max 4 detik)
-    await Promise.race([fetchSoalFromSheets(), wait(4000)]);
+    const ss = localStorage.getItem('siujian_soal');
+    if(ss) SOAL = JSON.parse(ss);
   } catch(e){}
 
-  clearTimeout(forceHide);
+  // 3. LANGSUNG tampilkan login screen — jangan tunggu Sheets
   updateLoginUI();
-  document.getElementById('loading').classList.add('hidden');
+  const loadEl = document.getElementById('loading');
+  loadEl.style.display = 'none';
   showScreen('screen-login');
+
+  // 4. Fetch dari Sheets di background (tidak blokir UI)
+  fetchCfgFromSheets().then(()=>updateLoginUI()).catch(()=>{});
+  fetchSoalFromSheets().then(()=>updateLoginUI()).catch(()=>{});
 };
 
 function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
@@ -1678,4 +1676,4 @@ function showScreen(id){
 }
 </script>
 </body>
-</html>
+</html
