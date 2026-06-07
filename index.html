@@ -83,6 +83,11 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
 .q-dot.answered{background:var(--success);border-color:var(--success);color:white;}
 .q-dot.current{border-color:var(--primary);color:var(--primary);background:white;}
 .q-dot.current.answered{background:var(--primary);border-color:var(--primary);color:white;}
+.q-dot.ragu{background:#FFF3CD;border-color:var(--accent);color:#856404;}
+.q-dot.current.ragu{background:var(--accent);border-color:var(--accent);color:white;}
+.btn-ragu{width:100%;padding:.65rem;border-radius:10px;font-size:.85rem;font-weight:700;border:2px solid var(--accent);background:#FFF3CD;color:#856404;margin-top:.5rem;transition:all .15s;}
+.btn-ragu.aktif{background:var(--accent);color:white;border-color:var(--accent);}
+.btn-ragu:active{transform:scale(.98);}
 
 /* QUESTION */
 .question-area{flex:1;padding:1rem;overflow-y:auto;}
@@ -516,6 +521,7 @@ let adminLoggedIn = false;
 let SOAL = [];
 let SOAL_ACTIVE = [];
 let JAWABAN = {};
+let RAGU = {};
 let currentIdx = 0;
 let timerInt = null;
 let timeLeft = 0;
@@ -534,7 +540,7 @@ const SISWA_5A = [
   "GHAISAN ALI RABBANI IBRAHIM","JIHAN ALMIRA SALSABILA","JUNIO ANWAR ALKHALIFI","KAMILAH JAMALUDIN",
   "LUISA JASMINE ASMIRANDA","MUHAMMAD ABDUL HABIB","MUHAMMAD LIONEL BENJAMIN","NADINE PERMATA PUTRI",
   "NAYAKA AMORA CHARDIN","QIYANA PRIMA PUTRI","RAJAB MAULANA","REXA BRIGHITA ORIANA",
-  "REYHAN ANDRA PRADITO","RIO DIRGANTARA RAHARGIYANTO","VALENCIA AUNI BATRISYIA",
+  "REYHAN ANDRA PRADITO","RIO DIRGANTARA RAHARGIYANTO","TRISTAN AGASTYA","VALENCIA AUNI BATRISYIA",
   "VANESSA AUNI BATRISYIA"
 ];
 const SISWA_5B = [
@@ -694,13 +700,11 @@ async function loadAdminPanel() {
   // Refresh CFG dari Sheets dulu sebelum isi form
   await fetchCfgFromSheets();
 
-  document.getElementById('cfg-nama').value        = CFG.namaUjian;
-  document.getElementById('cfg-waktu').value       = CFG.waktuMenit;
-  document.getElementById('cfg-acak').value        = CFG.acakSoal ? '1' : '0';
-  document.getElementById('cfg-acak-jwb').value    = CFG.acakJawaban ? '1' : '0';
-  document.getElementById('cfg-password').value    = CFG.password || '';
-  document.getElementById('sheets-script-url').value  = CFG.sheetsUrl || '';
-  document.getElementById('sheets-direct-url').value  = CFG.sheetsDirectUrl || '';
+  document.getElementById('cfg-nama').value     = CFG.namaUjian;
+  document.getElementById('cfg-waktu').value    = CFG.waktuMenit;
+  document.getElementById('cfg-acak').value     = CFG.acakSoal ? '1' : '0';
+  document.getElementById('cfg-acak-jwb').value = CFG.acakJawaban ? '1' : '0';
+  document.getElementById('cfg-password').value = CFG.password || '';
   // Always reload soal from Sheets when entering admin
   if(CFG.sheetsUrl) {
     document.getElementById('soal-empty').style.display='none';
@@ -742,16 +746,9 @@ async function saveSettings() {
         acakJawaban: CFG.acakJawaban,
         password:    CFG.password
       };
-      // saveCfg pakai GET karena payload kecil, lebih reliable
-      const cfgPayload = encodeURIComponent(JSON.stringify({action:'saveCfg', cfg: cfgToSave}));
-      const cfgRes = await fetch(CFG.sheetsUrl + '?action=saveCfg&payload=' + cfgPayload, {method:'GET', mode:'cors'});
-      const cfgData = await cfgRes.json();
-      if(cfgData.status === 'ok'){
-        const pwdInfo = CFG.password ? ' | Password: ' + CFG.password : ' | Tanpa password';
-        alert('✅ Pengaturan disimpan & disinkronkan ke semua perangkat!' + pwdInfo);
-      } else {
-        alert('⚠️ Sheets merespons error: ' + (cfgData.msg||'unknown'));
-      }
+      await postToSheets(CFG.sheetsUrl, {action:'saveCfg', cfg: cfgToSave});
+      const pwdInfo = CFG.password ? ' | Password: ' + CFG.password : ' | Tanpa password';
+      alert('✅ Pengaturan disimpan & disinkronkan ke semua perangkat!' + pwdInfo);
     } catch(e) {
       alert('⚠️ Tersimpan lokal. Gagal sinkron ke Sheets: ' + e.message);
     }
@@ -810,21 +807,6 @@ async function pushSoalToSheets() {
 const TIPE_LIST = ['PG','PGK','JODOH','BS','ISIAN'];
 const TIPE_COLOR = {PG:'#EBF5FB',PGK:'#EAF4E7',JODOH:'#FEF9E7',BS:'#F5EEF8',ISIAN:'#E8F8F5'};
 const TIPE_LABEL = {PG:'Pilihan Ganda',PGK:'PG Kompleks',JODOH:'Menjodohkan',BS:'Benar/Salah',ISIAN:'Isian'};
-
-// Konversi otomatis semua format link Google Drive ke thumbnail yang bisa tampil di browser
-function fixDriveUrl(url) {
-  if (!url) return '';
-  // Sudah format thumbnail, biarkan
-  if (url.includes('drive.google.com/thumbnail')) return url;
-  // Format uc?export=view&id=FILE_ID
-  const m1 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (m1) return 'https://drive.google.com/thumbnail?id=' + m1[1] + '&sz=w800';
-  // Format /file/d/FILE_ID/
-  const m2 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-  if (m2) return 'https://drive.google.com/thumbnail?id=' + m2[1] + '&sz=w800';
-  // Bukan link Drive, kembalikan apa adanya
-  return url;
-}
 
 function renderSoalEditor() {
   const wrap = document.getElementById('soal-editor');
@@ -1021,7 +1003,7 @@ function saveHasilData(data) {
   // Gunakan totalQ agar kolom selalu 40 (sesuai jumlah soal) meski batch hanya kirim sebagian
   const jumlahKolom = Math.max(parseInt(data.totalQ)||0, analisis.length);
 
-  const jawabanH = Array.from({length:jumlahKolom},(_,i)=>'Soal'+(i+1));
+  const jawabanH = Array.from({length:jumlahKolom},(_,i)=>'Jawaban'+(i+1));
   const poinH    = Array.from({length:jumlahKolom},(_,i)=>'Poin'+(i+1));
   const baseH    = ['Nama','Kelas','Ujian','Nilai','Benar','Salah','Total','Durasi','Waktu'];
   const allH     = [...baseH, ...jawabanH, ...poinH];
@@ -1169,7 +1151,7 @@ function doLogin() {
 function startExam() {
   SOAL_ACTIVE = [...SOAL];
   if(CFG.acakSoal) SOAL_ACTIVE = shuffle(SOAL_ACTIVE);
-  JAWABAN={}; currentIdx=0; tapSelected=null;
+  JAWABAN={}; RAGU={}; currentIdx=0; tapSelected=null;
   timeLeft=CFG.waktuMenit*60; startTime=Date.now();
   document.getElementById('hd-exam-name').textContent=CFG.namaUjian;
   document.getElementById('hd-student').textContent=studentData.name+' · '+studentData.kelas;
@@ -1207,8 +1189,11 @@ function buildDots(){
 function syncDots(){
   SOAL_ACTIVE.forEach((_,i)=>{
     const d=document.getElementById('dot-'+i); if(!d)return;
-    d.classList.remove('answered','current');
-    if(hasAns(i))d.classList.add('answered');
+    d.classList.remove('answered','ragu','current');
+    if(hasAns(i)){
+      if(RAGU[i]) d.classList.add('ragu');   // dijawab tapi ragu → kuning
+      else        d.classList.add('answered'); // dijawab yakin → hijau
+    }
   });
   document.getElementById('dot-'+currentIdx)?.classList.add('current');
   const ans=SOAL_ACTIVE.filter((_,i)=>hasAns(i)).length;
@@ -1216,6 +1201,7 @@ function syncDots(){
 }
 function hasAns(i){const j=JAWABAN[i];if(j===undefined||j===null)return false;if(typeof j==='string')return j.trim()!=='';if(Array.isArray(j))return j.length>0;if(typeof j==='object')return Object.keys(j).length>0;return false;}
 function goQ(i){currentIdx=i;renderQ(i);document.getElementById('dot-'+i)?.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});}
+function toggleRagu(i){RAGU[i]=!RAGU[i];renderQ(i);}
 
 // =========================================================
 // RENDER QUESTION
@@ -1223,13 +1209,20 @@ function goQ(i){currentIdx=i;renderQ(i);document.getElementById('dot-'+i)?.scrol
 const TYPE_LABELS={PG:'Pilihan Ganda',PGK:'PG Kompleks',JODOH:'Menjodohkan',BS:'Benar / Salah',ISIAN:'Isian Singkat'};
 function renderQ(idx){
   const q=SOAL_ACTIVE[idx];
-  const imgTag=q.gambarSoal?`<img class="q-img" src="${fixDriveUrl(q.gambarSoal)}" alt="Gambar soal" onerror="this.style.display='none'">`:'';
+  const imgTag=q.gambarSoal?`<img class="q-img" src="${q.gambarSoal}" alt="Gambar soal">`:'';
   let html=`<div class="q-card"><div class="q-type-badge ${q.tipe}">${TYPE_LABELS[q.tipe]||q.tipe}</div><div class="q-num">Soal ${idx+1} dari ${SOAL_ACTIVE.length}</div><div class="q-text">${esc(q.soal)}</div>${imgTag}<div class="q-poin">${q.poin} poin</div></div>`;
   if(q.tipe==='PG')html+=renderPG(q,idx);
   else if(q.tipe==='PGK')html+=renderPGK(q,idx);
   else if(q.tipe==='JODOH')html+=renderJodoh(q,idx);
   else if(q.tipe==='BS')html+=renderBS(q,idx);
   else if(q.tipe==='ISIAN')html+=renderIsian(q,idx);
+  // Tombol ragu-ragu
+  const isRagu = RAGU[idx] || false;
+  html += `<div style="padding:0 1rem .75rem">
+    <button class="btn-ragu ${isRagu?'aktif':''}" onclick="toggleRagu(${idx})">
+      ${isRagu ? '🤔 Ditandai Ragu-ragu — klik untuk hapus tanda' : '🤔 Tandai Ragu-ragu'}
+    </button>
+  </div>`;
   document.getElementById('q-area').innerHTML=html;
   syncDots(); updateNav();
 }
@@ -1237,7 +1230,7 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function optImg(src){return src?`<img class="opt-img" src="${src}" alt="">`:''}
 
 function renderPG(q,idx){
-  let opts=[{l:'A',t:q.opsiA,i:fixDriveUrl(q.gambarOpsiA)},{l:'B',t:q.opsiB,i:fixDriveUrl(q.gambarOpsiB)},{l:'C',t:q.opsiC,i:fixDriveUrl(q.gambarOpsiC)},{l:'D',t:q.opsiD,i:fixDriveUrl(q.gambarOpsiD)},{l:'E',t:q.opsiE,i:fixDriveUrl(q.gambarOpsiE)}].filter(o=>o.t||o.i);
+  let opts=[{l:'A',t:q.opsiA,i:q.gambarOpsiA},{l:'B',t:q.opsiB,i:q.gambarOpsiB},{l:'C',t:q.opsiC,i:q.gambarOpsiC},{l:'D',t:q.opsiD,i:q.gambarOpsiD},{l:'E',t:q.opsiE,i:q.gambarOpsiE}].filter(o=>o.t||o.i);
   // Use stored order or shuffle once per question
   if(CFG.acakJawaban){
     if(!q._opsiOrder) q._opsiOrder=shuffle([...opts.map(o=>o.l)]);
@@ -1249,7 +1242,7 @@ function renderPG(q,idx){
 function selPG(idx,l,el){JAWABAN[idx]=l;el.closest('.options-list').querySelectorAll('.opt-item').forEach(li=>li.classList.remove('selected'));el.classList.add('selected');syncDots();}
 
 function renderPGK(q,idx){
-  let opts=[{t:q.opsiA,i:fixDriveUrl(q.gambarOpsiA),k:'A'},{t:q.opsiB,i:fixDriveUrl(q.gambarOpsiB),k:'B'},{t:q.opsiC,i:fixDriveUrl(q.gambarOpsiC),k:'C'},{t:q.opsiD,i:fixDriveUrl(q.gambarOpsiD),k:'D'},{t:q.opsiE,i:fixDriveUrl(q.gambarOpsiE),k:'E'}].filter(o=>o.t||o.i);
+  let opts=[{t:q.opsiA,i:q.gambarOpsiA,k:'A'},{t:q.opsiB,i:q.gambarOpsiB,k:'B'},{t:q.opsiC,i:q.gambarOpsiC,k:'C'},{t:q.opsiD,i:q.gambarOpsiD,k:'D'},{t:q.opsiE,i:q.gambarOpsiE,k:'E'}].filter(o=>o.t||o.i);
   if(CFG.acakJawaban){
     if(!q._opsiOrder) q._opsiOrder=shuffle([...opts.map(o=>o.k)]);
     opts=q._opsiOrder.map(k=>opts.find(o=>o.k===k)).filter(Boolean);
@@ -1260,7 +1253,7 @@ function renderPGK(q,idx){
 function selPGK(idx,l,el){if(!JAWABAN[idx])JAWABAN[idx]=[];const arr=JAWABAN[idx],i=arr.indexOf(l);if(i>=0){arr.splice(i,1);el.classList.remove('checked');el.querySelector('.pgk-checkbox').textContent='';}else{arr.push(l);el.classList.add('checked');el.querySelector('.pgk-checkbox').textContent='✓';}syncDots();}
 
 function renderJodoh(q,idx){
-  const lefts=[{k:'A',t:q.opsiA,i:fixDriveUrl(q.gambarOpsiA)},{k:'B',t:q.opsiB,i:fixDriveUrl(q.gambarOpsiB)},{k:'C',t:q.opsiC,i:fixDriveUrl(q.gambarOpsiC)},{k:'D',t:q.opsiD,i:fixDriveUrl(q.gambarOpsiD)}].filter(o=>o.t||o.i);
+  const lefts=[{k:'A',t:q.opsiA,i:q.gambarOpsiA},{k:'B',t:q.opsiB,i:q.gambarOpsiB},{k:'C',t:q.opsiC,i:q.gambarOpsiC},{k:'D',t:q.opsiD,i:q.gambarOpsiD}].filter(o=>o.t||o.i);
   const kunciMap={};
   (q.jawaban||'').split(',').forEach(p=>{const d=p.indexOf('-');if(d>-1)kunciMap[p.substring(0,d).trim()]=p.substring(d+1).trim();});
   const allRights=[...new Set(Object.values(kunciMap))].filter(v=>v);
@@ -1299,19 +1292,38 @@ function nextQ(){if(currentIdx<SOAL_ACTIVE.length-1){currentIdx++;renderQ(curren
 // REVIEW & SUBMIT
 // =========================================================
 function showReview(){
-  const ans=SOAL_ACTIVE.filter((_,i)=>hasAns(i)).length;
-  document.getElementById('review-summary').textContent=`${ans} dijawab · ${SOAL_ACTIVE.length-ans} belum`;
+  const belum = SOAL_ACTIVE.filter((_,i)=>!hasAns(i));
+  // Blokir jika ada soal yang belum dijawab sama sekali
+  if(belum.length > 0){
+    const nomorBelum = belum.map((_,i)=> SOAL_ACTIVE.findIndex((q,si)=>!hasAns(si) && si>=i && !belum.slice(0,i).includes(q)) + 1);
+    const idxBelum = SOAL_ACTIVE.map((_,i)=>i).filter(i=>!hasAns(i));
+    const nomorStr = idxBelum.map(i=>i+1).join(', ');
+    alert(`⚠️ Semua soal wajib dijawab!\n\nSoal belum dijawab: No. ${nomorStr}\n\nSilakan lengkapi semua jawaban terlebih dahulu.`);
+    // Arahkan ke soal pertama yang belum dijawab
+    goQ(idxBelum[0]);
+    return;
+  }
+  const ans=SOAL_ACTIVE.length;
+  const ragu=SOAL_ACTIVE.filter((_,i)=>RAGU[i]).length;
+  document.getElementById('review-summary').textContent=`${ans} dijawab · ${ragu} ragu-ragu`;
   document.getElementById('review-grid').innerHTML=SOAL_ACTIVE.map((q,i)=>{
-    const a=hasAns(i); let at='';
+    let at='';
     const j=JAWABAN[i];
     if(j){if(typeof j==='string')at=j;else if(Array.isArray(j))at=j.join(', ');else if(typeof j==='object')at=Object.entries(j).map(([k,v])=>`${k}→${v}`).join(', ');}
-    return `<div class="review-item ${a?'answered':'unanswered'}" onclick="goQ(${i});showScreen('screen-exam')"><div style="font-size:.9rem">${i+1}. ${esc(q.soal.substring(0,70))}${q.soal.length>70?'...':''}</div><div style="font-size:.75rem;margin-top:.3rem;color:${a?'var(--success)':'var(--danger)'}">${a?'✅ '+at:'❌ Belum dijawab'} · ${q.poin}pt</div></div>`;
+    const isRagu=RAGU[i];
+    const warna = isRagu ? 'var(--accent)' : 'var(--success)';
+    const ikon  = isRagu ? '🤔' : '✅';
+    return `<div class="review-item answered" style="border-left-color:${warna}" onclick="goQ(${i});showScreen('screen-exam')">
+      <div style="font-size:.9rem">${i+1}. ${esc(q.soal.substring(0,70))}${q.soal.length>70?'...':''}</div>
+      <div style="font-size:.75rem;margin-top:.3rem;color:${warna}">${ikon} ${at}${isRagu?' (ragu-ragu)':''} · ${q.poin}pt</div>
+    </div>`;
   }).join('');
   showScreen('screen-review');
 }
 function confirmSubmit(){
-  const un=SOAL_ACTIVE.filter((_,i)=>!hasAns(i)).length;
-  document.getElementById('modal-text').innerHTML=un?`Masih ada <strong>${un} soal</strong> belum dijawab. Yakin kumpulkan?`:'Semua soal sudah dijawab. Yakin kumpulkan?';
+  const ragu=SOAL_ACTIVE.filter((_,i)=>RAGU[i]).length;
+  const pesanRagu = ragu>0 ? `<br><span style="color:var(--accent)">⚠️ ${ragu} soal masih ditandai ragu-ragu.</span>` : '';
+  document.getElementById('modal-text').innerHTML=`Semua soal sudah dijawab. Yakin kumpulkan?${pesanRagu}`;
   document.getElementById('modal-ok-btn').onclick=submitExam;
   document.getElementById('modal-confirm').classList.add('show');
 }
@@ -1399,8 +1411,8 @@ function showResult(r){
   document.getElementById('res-durasi').textContent=r.durasi;
   let pred='D',pl='Perlu Bimbingan';
   if(r.score>=90){pred='A';pl='Sangat Baik';}
-  else if(r.score>=80){pred='B';pl='Baik';}
-  else if(r.score>=75){pred='C';pl='Cukup';}
+  else if(r.score>=75){pred='B';pl='Baik';}
+  else if(r.score>=60){pred='C';pl='Cukup';}
   document.getElementById('res-pred').textContent=`${pred} — ${pl}`;
   renderAnalisis();
   showScreen('screen-result');
@@ -1476,12 +1488,6 @@ function renderAnalisis(){
   document.getElementById('analisis-list').innerHTML = html;
 }
 
-function isEmptyAnswer(j){
-  return (j===undefined||j===null||j===''||
-    (Array.isArray(j)&&j.length===0)||
-    (typeof j==='object'&&!Array.isArray(j)&&j!==null&&Object.keys(j).length===0));
-}
-
 async function sendHasil(data){
   const el = document.getElementById('saving-note');
   el.textContent = 'Menyimpan ke Google Sheets...';
@@ -1491,7 +1497,7 @@ async function sendHasil(data){
     const activeIdx = SOAL_ACTIVE.findIndex(aq=>aq.soal===origQ.soal && aq.tipe===origQ.tipe);
     const j = activeIdx>=0 ? JAWABAN[activeIdx] : undefined;
     const poin = parseFloat(String(origQ.poin||1).replace(',','.'))||1;
-    const kosong = isEmptyAnswer(j);
+    const kosong = isEmpty(j);
     let jawStr='(kosong)', benar=false;
 
     if(!kosong){
@@ -1499,9 +1505,10 @@ async function sendHasil(data){
         const jawRaw=String(j).toUpperCase();
         const kunci=String(origQ.jawaban||'').toUpperCase();
         benar=jawRaw!==''&&kunci!==''&&jawRaw===kunci;
-        jawStr=jawRaw; // hanya huruf: A/B/C/D/E
+        const map={A:origQ.opsiA,B:origQ.opsiB,C:origQ.opsiC,D:origQ.opsiD,E:origQ.opsiE};
+        jawStr=jawRaw+(map[jawRaw]?(' ('+map[jawRaw]+')'):'');
       } else if(origQ.tipe==='BS'){
-        jawStr=String(j).toUpperCase(); // BENAR atau SALAH
+        jawStr=String(j).toUpperCase();
         benar=jawStr!==''&&jawStr===String(origQ.jawaban||'').toUpperCase();
       } else if(origQ.tipe==='PGK'){
         const arr=Array.isArray(j)?j:[];
@@ -1532,38 +1539,22 @@ async function sendHasil(data){
     benar:totalBenar, salah:totalSalah
   };
 
-  // Jeda acak 1-5 detik sebelum kirim — otomatis sebar 70 submit yang serentak
-  const jedaAwal = Math.floor(Math.random() * 4000) + 1000;
-  el.textContent = 'Menyimpan ke Google Sheets...';
-  await new Promise(r => setTimeout(r, jedaAwal));
-
-  // Retry otomatis jika server masih sibuk (jeda makin lama tiap percobaan)
-  let berhasil = false;
-  for (let attempt = 1; attempt <= 5; attempt++) {
-    try {
-      if (attempt > 1) el.textContent = `Mencoba ulang... (${attempt}/5)`;
-      await postToSheets(CFG.sheetsUrl, payload);
-      berhasil = true;
-      break;
-    } catch(e) {
-      if (attempt < 5) {
-        // Jeda makin lama + sedikit acak agar tidak bentrok lagi: 4s, 8s, 13s, 20s
-        const base = [4000, 8000, 13000, 20000][attempt - 1];
-        const jitter = Math.floor(Math.random() * 2000);
-        await new Promise(r => setTimeout(r, base + jitter));
-      }
-    }
+  // Kirim via hidden iframe form POST - bypass CORS & tidak ada batasan panjang URL
+  try {
+    await postToSheets(CFG.sheetsUrl, payload);
+    el.textContent = 'Nilai tersimpan di Google Sheets!';
+  } catch(e) {
+    el.textContent = 'Tersimpan lokal. Sheets: ' + e.message;
   }
-  el.textContent = berhasil
-    ? '✅ Nilai tersimpan di Google Sheets!'
-    : '⚠️ Gagal simpan ke Sheets. Hubungi guru — nilai Anda: ' + (payload.score || 0);
 }
 
 async function postToSheets(url, data) {
+  // Kompres jawaban agar muat dalam 1 URL (max ~7500 char encoded)
+  // Untuk 40 soal: rata-rata 15 char per jawaban = 600 char, aman
   const analisis = (data.analisis||[]).map(a=>({
-    jawaban: String(a.jawaban||'').substring(0, 50),
-    benar: a.benar ? 1 : 0,
-    poin: a.poin
+    j: String(a.jawaban||'').substring(0, 20), // singkat
+    b: a.benar ? 1 : 0,
+    p: a.poin
   }));
 
   const payload = {
@@ -1576,51 +1567,18 @@ async function postToSheets(url, data) {
     analisis
   };
 
-  const jsonStr = JSON.stringify(payload);
-
-  // Coba GET dulu (hanya untuk payload kecil < 6000 char encoded)
-  const encoded = encodeURIComponent(jsonStr);
-  if (encoded.length < 6000) {
-    const res = await fetch(url + '?action=saveHasil&payload=' + encoded, {
-      method: 'GET', mode: 'cors'
-    });
-    return res.ok;
-  }
-
-  // Payload besar -> kirim POST no-cors via form (bypass CORS, data tetap masuk ke Apps Script)
-  return new Promise((resolve) => {
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = url;
-    form.target = '_siujian_submit';
-    form.style.display = 'none';
-
-    const inp = document.createElement('input');
-    inp.type = 'hidden';
-    inp.name = 'payload';
-    inp.value = jsonStr;
-    form.appendChild(inp);
-
-    let iframe = document.getElementById('_siujian_iframe');
-    if (!iframe) {
-      iframe = document.createElement('iframe');
-      iframe.name = '_siujian_submit';
-      iframe.id = '_siujian_iframe';
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-    }
-
-    document.body.appendChild(form);
-    form.submit();
-    setTimeout(() => { form.remove(); resolve(true); }, 1500);
+  const encoded = encodeURIComponent(JSON.stringify(payload));
+  const res = await fetch(url + '?action=saveHasil&payload=' + encoded, {
+    method: 'GET', mode: 'cors'
   });
+  return res.ok;
 }
 
 function printResult(){
   const r=JSON.parse(localStorage.getItem('siujian_results')||'[]').slice(-1)[0];
   if(!r)return;
   const w=window.open('');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;padding:2rem;max-width:500px;margin:0 auto;}h1{color:#1A3A5C;border-bottom:2px solid #1A3A5C;padding-bottom:.5rem;}.sc{font-size:4rem;font-weight:800;color:#1A3A5C;text-align:center;margin:1rem 0;}table{width:100%;border-collapse:collapse;margin:1rem 0;}td{padding:.5rem;border:1px solid #ddd;}td:first-child{background:#f5f5f5;font-weight:bold;}.btn{margin-top:1rem;padding:.5rem 1rem;background:#1A3A5C;color:white;border:none;border-radius:6px;cursor:pointer;}@media print{.btn{display:none}}</style></head><body><h1>📋 Bukti Ujian — SDN Petukangan Utara 01</h1><div class="sc">${r.score}</div><table><tr><td>Nama</td><td>${r.name}</td></tr><tr><td>Kelas</td><td>${r.kelas}</td></tr><tr><td>Ujian</td><td>${r.ujian}</td></tr><tr><td>Nilai</td><td><strong>${r.score} / 100</strong></td></tr><tr><td>Benar</td><td>${r.benar} dari ${r.totalQ} soal</td></tr><tr><td>Durasi</td><td>${r.durasi}</td></tr><tr><td>Waktu</td><td>${r.submitTime}</td></tr></table><button class="btn" onclick="window.print()">🖨 Cetak / Simpan PDF</button></body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;padding:2rem;max-width:500px;margin:0 auto;}h1{color:#1A3A5C;border-bottom:2px solid #1A3A5C;padding-bottom:.5rem;}.sc{font-size:4rem;font-weight:800;color:#1A3A5C;text-align:center;margin:1rem 0;}table{width:100%;border-collapse:collapse;margin:1rem 0;}td{padding:.5rem;border:1px solid #ddd;}td:first-child{background:#f5f5f5;font-weight:bold;}.btn{margin-top:1rem;padding:.5rem 1rem;background:#1A3A5C;color:white;border:none;border-radius:6px;cursor:pointer;}@media print{.btn{display:none}}</style></head><body><h1>📋 Bukti Ujian — Muhammad Alauddin</h1><div class="sc">${r.score}</div><table><tr><td>Nama</td><td>${r.name}</td></tr><tr><td>Kelas</td><td>${r.kelas}</td></tr><tr><td>Ujian</td><td>${r.ujian}</td></tr><tr><td>Nilai</td><td><strong>${r.score} / 100</strong></td></tr><tr><td>Benar</td><td>${r.benar} dari ${r.totalQ} soal</td></tr><tr><td>Durasi</td><td>${r.durasi}</td></tr><tr><td>Waktu</td><td>${r.submitTime}</td></tr></table><button class="btn" onclick="window.print()">🖨 Cetak / Simpan PDF</button></body></html>`);
   w.document.close();
 }
 function resetLogin(){
