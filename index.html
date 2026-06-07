@@ -1399,8 +1399,8 @@ function showResult(r){
   document.getElementById('res-durasi').textContent=r.durasi;
   let pred='D',pl='Perlu Bimbingan';
   if(r.score>=90){pred='A';pl='Sangat Baik';}
-  else if(r.score>=75){pred='B';pl='Baik';}
-  else if(r.score>=60){pred='C';pl='Cukup';}
+  else if(r.score>=80){pred='B';pl='Baik';}
+  else if(r.score>=75){pred='C';pl='Cukup';}
   document.getElementById('res-pred').textContent=`${pred} — ${pl}`;
   renderAnalisis();
   showScreen('screen-result');
