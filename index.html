@@ -308,13 +308,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
 <body>
 
 <!-- LOADING -->
-<div class="loading-screen" id="loading">
-  <div class="ld-logo">
-    <h1>SIUJIAN</h1>
-    <p>Sistem Ujian Online · SDN Petukangan Utara 01</p>
-    <div class="ld-dots"><div class="ld-dot"></div><div class="ld-dot"></div><div class="ld-dot"></div></div>
-  </div>
-</div>
+<div class="loading-screen" id="loading" style="display:none"></div>
 
 <!-- ADMIN LOGIN OVERLAY -->
 <div class="overlay-bg" id="admin-overlay">
@@ -343,7 +337,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inhe
 </div>
 
 <!-- SCREEN LOGIN -->
-<div class="screen" id="screen-login">
+<div class="screen active" id="screen-login">
   <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:2rem 1.5rem;">
     <div class="login-box">
       <div class="login-logo">
@@ -571,8 +565,8 @@ const SISWA_ALL = [...new Set([...SISWA_5A,...SISWA_5B])].sort();
 // =========================================================
 // INIT
 // =========================================================
-window.onload = async () => {
-  // 1. Muat CFG dari localStorage sebagai fallback sementara
+window.onload = () => {
+  // Muat CFG dari localStorage
   try {
     const sc = localStorage.getItem('siujian_cfg');
     if(sc) {
@@ -583,19 +577,15 @@ window.onload = async () => {
     }
   } catch(e){}
 
-  // 2. Muat soal dari cache lokal dulu agar bisa langsung tampil
+  // Muat soal dari cache lokal
   try {
     const ss = localStorage.getItem('siujian_soal');
     if(ss) SOAL = JSON.parse(ss);
   } catch(e){}
 
-  // 3. LANGSUNG tampilkan login screen — jangan tunggu Sheets
   updateLoginUI();
-  const loadEl = document.getElementById('loading');
-  loadEl.style.display = 'none';
-  showScreen('screen-login');
 
-  // 4. Fetch dari Sheets di background (tidak blokir UI)
+  // Fetch dari Sheets di background — tidak blokir UI sama sekali
   fetchCfgFromSheets().then(()=>updateLoginUI()).catch(()=>{});
   fetchSoalFromSheets().then(()=>updateLoginUI()).catch(()=>{});
 };
@@ -1676,4 +1666,4 @@ function showScreen(id){
 }
 </script>
 </body>
-</html
+</html>
