@@ -1521,30 +1521,33 @@ async function sendHasil(data){
 
     if(!kosong){
       if(origQ.tipe==='PG'){
-        const jawRaw=String(j).toUpperCase();
-        const kunci=String(origQ.jawaban||'').toUpperCase();
-        benar=jawRaw!==''&&kunci!==''&&jawRaw===kunci;
-        const map={A:origQ.opsiA,B:origQ.opsiB,C:origQ.opsiC,D:origQ.opsiD,E:origQ.opsiE};
-        jawStr=jawRaw+(map[jawRaw]?(' ('+map[jawRaw]+')'):'');
+        // Hanya huruf: A/B/C/D/E
+        jawStr=String(j).toUpperCase().trim().charAt(0)||'(kosong)';
+        benar=jawStr===String(origQ.jawaban||'').toUpperCase().trim();
       } else if(origQ.tipe==='BS'){
-        jawStr=String(j).toUpperCase();
-        benar=jawStr!==''&&jawStr===String(origQ.jawaban||'').toUpperCase();
+        // BENAR atau SALAH
+        jawStr=String(j).toUpperCase().trim();
+        benar=jawStr===String(origQ.jawaban||'').toUpperCase().trim();
       } else if(origQ.tipe==='PGK'){
+        // A,B,D (hanya huruf, diurutkan)
         const arr=Array.isArray(j)?j:[];
-        const siswa=arr.map(x=>String(x).trim().toUpperCase()).filter(x=>x).sort().join(',');
-        const kunci=String(origQ.jawaban||'').split(',').map(x=>x.trim().toUpperCase()).filter(x=>x).sort().join(',');
+        const siswa=arr.map(x=>String(x).trim().toUpperCase().charAt(0)).filter(x=>x).sort().join(',');
+        const kunci=String(origQ.jawaban||'').split(',').map(x=>x.trim().toUpperCase().charAt(0)).filter(x=>x).sort().join(',');
         jawStr=siswa||'(kosong)';
         benar=siswa!==''&&kunci!==''&&siswa===kunci;
       } else if(origQ.tipe==='JODOH'){
+        // A:1,B:2 (singkat)
         const km={};
         String(origQ.jawaban||'').split(',').forEach(p=>{const d=p.indexOf('-');if(d>-1)km[p.substring(0,d).trim()]=p.substring(d+1).trim();});
         if(typeof j==='object'&&!Array.isArray(j)&&j!==null&&Object.keys(j).length>0){
-          jawStr=Object.entries(j).map(([k,v])=>k+':'+v).join('; ');
+          jawStr=Object.entries(j).map(([k,v])=>k+':'+v.split(' ')[0]).join(',');
           benar=Object.keys(km).length>0&&Object.entries(km).every(([k,v])=>j[k]===v);
         }
       } else if(origQ.tipe==='ISIAN'){
-        jawStr=String(j).trim()||'(kosong)';
-        benar=jawStr!=='(kosong)'&&checkIsian(j,origQ.jawaban);
+        // Kata pertama saja (maks 15 karakter)
+        const raw=String(j).trim();
+        jawStr=raw.split(' ')[0].substring(0,15)||'(kosong)';
+        benar=raw!==''&&checkIsian(raw,origQ.jawaban);
       }
     }
     return {jawaban:jawStr, benar, poin};
