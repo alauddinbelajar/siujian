@@ -1516,7 +1516,7 @@ async function sendHasil(data){
     const activeIdx = SOAL_ACTIVE.findIndex(aq=>aq.soal===origQ.soal && aq.tipe===origQ.tipe);
     const j = activeIdx>=0 ? JAWABAN[activeIdx] : undefined;
     const poin = parseFloat(String(origQ.poin||1).replace(',','.'))||1;
-    const kosong = isEmpty(j);
+    const kosong = (j===undefined||j===null||j===''||(Array.isArray(j)&&j.length===0)||(typeof j==='object'&&!Array.isArray(j)&&j!==null&&Object.keys(j).length===0));
     let jawStr='(kosong)', benar=false;
 
     if(!kosong){
