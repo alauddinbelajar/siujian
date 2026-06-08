@@ -1558,13 +1558,30 @@ async function sendHasil(data){
     benar:totalBenar, salah:totalSalah
   };
 
-  // Kirim via hidden iframe form POST - bypass CORS & tidak ada batasan panjang URL
-  try {
-    await postToSheets(CFG.sheetsUrl, payload);
-    el.textContent = 'Nilai tersimpan di Google Sheets!';
-  } catch(e) {
-    el.textContent = 'Tersimpan lokal. Sheets: ' + e.message;
+  // Jeda acak 1-5 detik — sebar submit 70 siswa serentak
+  const jedaAwal = Math.floor(Math.random() * 4000) + 1000;
+  el.textContent = 'Menyimpan ke Google Sheets...';
+  await new Promise(r => setTimeout(r, jedaAwal));
+
+  // Retry otomatis hingga 5x jika server sibuk
+  let berhasil = false;
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    try {
+      if (attempt > 1) el.textContent = `Mencoba ulang... (${attempt}/5)`;
+      await postToSheets(CFG.sheetsUrl, payload);
+      berhasil = true;
+      break;
+    } catch(e) {
+      if (attempt < 5) {
+        const base = [4000, 8000, 13000, 20000][attempt - 1];
+        const jitter = Math.floor(Math.random() * 2000);
+        await new Promise(r => setTimeout(r, base + jitter));
+      }
+    }
   }
+  el.textContent = berhasil
+    ? '✅ Nilai tersimpan di Google Sheets!'
+    : '⚠️ Gagal simpan ke Sheets. Hubungi guru — nilai Anda: ' + (payload.score || 0);
 }
 
 async function postToSheets(url, data) {
