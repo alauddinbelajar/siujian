@@ -1553,12 +1553,10 @@ async function sendHasil(data){
 }
 
 async function postToSheets(url, data) {
-  // Kompres jawaban agar muat dalam 1 URL (max ~7500 char encoded)
-  // Untuk 40 soal: rata-rata 15 char per jawaban = 600 char, aman
   const analisis = (data.analisis||[]).map(a=>({
-    j: String(a.jawaban||'').substring(0, 20), // singkat
-    b: a.benar ? 1 : 0,
-    p: a.poin
+    jawaban: String(a.jawaban||'').substring(0, 50),
+    benar: a.benar ? 1 : 0,
+    poin: a.poin
   }));
 
   const payload = {
@@ -1571,11 +1569,41 @@ async function postToSheets(url, data) {
     analisis
   };
 
-  const encoded = encodeURIComponent(JSON.stringify(payload));
-  const res = await fetch(url + '?action=saveHasil&payload=' + encoded, {
-    method: 'GET', mode: 'cors'
+  const jsonStr = JSON.stringify(payload);
+  const encoded = encodeURIComponent(jsonStr);
+
+  // Payload kecil → GET
+  if (encoded.length < 6000) {
+    const res = await fetch(url + '?action=saveHasil&payload=' + encoded, {
+      method: 'GET', mode: 'cors'
+    });
+    return res.ok;
+  }
+
+  // Payload besar → POST via form + iframe (bypass CORS, tidak ada batas panjang)
+  return new Promise((resolve) => {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    form.target = '_siujian_submit';
+    form.style.display = 'none';
+    const inp = document.createElement('input');
+    inp.type = 'hidden';
+    inp.name = 'payload';
+    inp.value = jsonStr;
+    form.appendChild(inp);
+    let iframe = document.getElementById('_siujian_iframe');
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.name = '_siujian_submit';
+      iframe.id = '_siujian_iframe';
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+    }
+    document.body.appendChild(form);
+    form.submit();
+    setTimeout(() => { form.remove(); resolve(true); }, 1500);
   });
-  return res.ok;
 }
 
 function printResult(){
